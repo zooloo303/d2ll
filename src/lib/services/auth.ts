@@ -85,22 +85,3 @@ export async function refreshAccessToken(refreshToken: string) {
 
   return await response.json();
 }
-
-export async function fetchCharacterData(accessToken: string) {
-  const response = await fetch('https://www.bungie.net/Platform/Destiny2/254/Profile/0/?components=200,206', {
-    headers: {
-      'X-API-Key': BUNGIE_API_KEY,
-      'Authorization': `Bearer ${accessToken}`
-    }
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch character data');
-  }
-
-  const data = await response.json();
-  return {
-    characters: Object.values(data.Response.characters.data),
-    loadouts: data.Response.characterLoadouts.data
-  };
-}

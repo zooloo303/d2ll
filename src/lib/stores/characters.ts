@@ -1,35 +1,36 @@
 import { writable } from 'svelte/store';
-import type { Writable } from 'svelte/store';
 import type { Character, CharacterLoadouts } from '$lib/utils/types';
+import { getCharacterData } from '$lib/services/api';
 
 interface CharacterStore {
-  characters: Character[];
-  loadouts: CharacterLoadouts;
+    characters: { [characterId: string]: Character };
+    loadouts: CharacterLoadouts;
 }
 
 function createCharacterStore() {
-  const { subscribe, set, update }: Writable<CharacterStore> = writable({
-    characters: [],
-    loadouts: {}
-  });
+    const { subscribe, set, update } = writable<CharacterStore>({
+        characters: {},
+        loadouts: {}
+    });
 
-  return {
-    subscribe,
-    setCharacters: (characters: Character[]) => update(store => ({ ...store, characters })),
-    setLoadouts: (loadouts: CharacterLoadouts) => update(store => ({ ...store, loadouts })),
-    clearCharacters: () => set({ characters: [], loadouts: {} }),
-    init: () => {
-      const storedData = localStorage.getItem('characterData');
-      if (storedData) {
-        const parsedData = JSON.parse(storedData) as CharacterStore;
-        set(parsedData);
-      }
-    },
-    save: (data: CharacterStore) => {
-      localStorage.setItem('characterData', JSON.stringify(data));
-      set(data);
-    }
-  };
+    return {
+        subscribe,
+        loadCharacterData: async (membershipType: number, destinyMembershipId: string) => {
+            try {
+                const { characters, loadouts } = await getCharacterData(membershipType, destinyMembershipId);
+                set({ characters, loadouts });
+                localStorage.setItem('characterData', JSON.stringify({ characters, loadouts }));
+            } catch (error) {
+                console.error('Error loading character data:', error);
+            }
+        },
+        init: () => {
+            const storedData = localStorage.getItem('characterData');
+            if (storedData) {
+                set(JSON.parse(storedData));
+            }
+        }
+    };
 }
 
 export const characterStore = createCharacterStore();

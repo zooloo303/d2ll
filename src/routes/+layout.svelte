@@ -7,12 +7,20 @@
 	import Header from '$lib/components/Header.svelte';
 	import { Toaster } from '$lib/components/ui/sonner';
 	import { Progress } from '$lib/components/ui/progress';
+	import { characterStore } from '$lib/stores/characters';
 
 	let manifestLoading = true;
 
 	onMount(async () => {
-		userStore.init();
+		await userStore.init();
+		characterStore.init();
 		await manifestStore.init();
+		
+		if ($userStore.destinyMemberships.length > 0) {
+			const membership = $userStore.destinyMemberships[0];
+			await characterStore.loadCharacterData(membership.membershipType, membership.membershipId);
+		}
+		
 		manifestLoading = false;
 	});
 </script>
