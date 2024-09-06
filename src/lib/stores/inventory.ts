@@ -2,8 +2,12 @@ import { writable } from "svelte/store";
 import type { CompleteInventoryResponse } from "$lib/utils/types";
 import { getInventory } from "$lib/services/api";
 
+interface InventoryStore extends CompleteInventoryResponse {
+  lastUpdated: number;
+}
+
 function createInventoryStore() {
-  const { subscribe, set } = writable<CompleteInventoryResponse | null>(null);
+  const { subscribe, set, update } = writable<InventoryStore | null>(null);
 
   return {
     subscribe,
@@ -16,8 +20,17 @@ function createInventoryStore() {
           membershipType,
           destinyMembershipId,
         );
-        set(inventoryData);
-        localStorage.setItem("inventoryData", JSON.stringify(inventoryData));
+        update(() => ({
+          ...inventoryData,
+          lastUpdated: Date.now(),
+        }));
+        localStorage.setItem(
+          "inventoryData",
+          JSON.stringify({
+            ...inventoryData,
+            lastUpdated: Date.now(),
+          }),
+        );
       } catch (error) {
         console.error("Error loading inventory data:", error);
       }

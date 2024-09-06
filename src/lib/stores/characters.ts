@@ -5,12 +5,14 @@ import { getCharacterData } from "$lib/services/api";
 interface CharacterStore {
   characters: { [characterId: string]: Character };
   loadouts: CharacterLoadouts;
+  lastUpdated: number;
 }
 
 function createCharacterStore() {
-  const { subscribe, set } = writable<CharacterStore>({
+  const { subscribe, set, update } = writable<CharacterStore>({
     characters: {},
     loadouts: {},
+    lastUpdated: 0,
   });
 
   return {
@@ -24,10 +26,14 @@ function createCharacterStore() {
           membershipType,
           destinyMembershipId,
         );
-        set({ characters, loadouts });
+        update(() => ({
+          characters,
+          loadouts,
+          lastUpdated: Date.now(),
+        }));
         localStorage.setItem(
           "characterData",
-          JSON.stringify({ characters, loadouts }),
+          JSON.stringify({ characters, loadouts, lastUpdated: Date.now() }),
         );
       } catch (error) {
         console.error("Error loading character data:", error);
