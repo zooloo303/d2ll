@@ -21,8 +21,11 @@ export interface UserData {
 }
 
 export interface ManifestTable {
-  [key: string]: unknown;
+  [key: string]: {
+    [subKey: string]: unknown;
+  };
 }
+
 export interface ManifestResponse {
   Response: {
     version: string;
