@@ -1,5 +1,3 @@
-import type { Cookies } from "@sveltejs/kit";
-
 export interface BungieNetUser {
   membershipId: string;
   displayName: string;
@@ -123,7 +121,6 @@ export type ManifestTableName =
   | "DestinyLoadoutConstantsDefinition"
   | "DestinyFireteamFinderConstantsDefinition";
 
-
 // Character related types
 export enum ClassType {
   Titan = 0,
@@ -197,11 +194,11 @@ export interface ItemInstance {
   cannotEquipReason: number;
 }
 
-export interface ItemStats {
-  [statHash: number]: {
-    statHash: number;
-    value: number;
-  };
+export interface ItemStat {
+  statHash: number;
+  value: number;
+  name?: string;
+  description?: string;
 }
 
 export interface ItemSocket {
@@ -210,16 +207,19 @@ export interface ItemSocket {
   enabled: boolean;
 }
 
-
 export interface ItemDefinition {
   displayProperties: {
     name: string;
     icon: string;
+    description: string;
   };
   itemType: number;
   itemTypeDisplayName: string;
   itemSubType: number;
   classType: number;
+  stats: {
+    [statHash: number]: ItemStat;
+  };
   inventory: {
     bucketTypeHash: number;
   };

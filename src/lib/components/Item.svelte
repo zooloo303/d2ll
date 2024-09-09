@@ -1,22 +1,32 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-  import { getManifestTable } from '$lib/services/manifest';
-  import { Skeleton } from '$lib/components/ui/skeleton';
-  import { BUNGIE_BASE_URL } from '$lib/utils/constants';
-  import { inventoryStore } from '$lib/stores/inventory';
-  import type { InventoryItem, ManifestTableName, ItemInstance } from '$lib/utils/types';
-  import { lazyLoad } from '$lib/utils/helpers';
+  import { onMount } from "svelte";
+  import { getManifestTable } from "$lib/services/manifest";
+  import { Skeleton } from "$lib/components/ui/skeleton";
+  import { BUNGIE_BASE_URL } from "$lib/utils/constants";
+  import { inventoryStore } from "$lib/stores/inventory";
+  import type {
+    InventoryItem,
+    ManifestTableName,
+    ItemInstance,
+    ItemDefinition,
+    ItemStats,
+  } from "$lib/utils/types";
+  import { lazyLoad } from "$lib/utils/helpers";
+  import ItemHoverCard from "./ItemHoverCard.svelte";
 
   export let item: InventoryItem;
 
-  let itemDefinition: any | null = null;
-  let overrideItemDefinition: any | null = null;
+  let itemDefinition: ItemDefinition | null = null;
+  let overrideItemDefinition: ItemDefinition | null = null;
   let damageTypeDefinition: any | null = null;
   let itemInstance: ItemInstance | null = null;
+  let itemStats: ItemStats | null = null;
   let loaded = false;
 
   onMount(async () => {
-    const itemDefs = await getManifestTable<ManifestTableName>('DestinyInventoryItemDefinition');
+    const itemDefs = await getManifestTable<ManifestTableName>(
+      "DestinyInventoryItemDefinition",
+    );
     if (itemDefs) {
       itemDefinition = itemDefs[item.itemHash];
       if (item.overrideStyleItemHash) {
@@ -25,45 +35,60 @@
     }
 
     if (itemDefinition?.defaultDamageTypeHash) {
-      const damageDefs = await getManifestTable<ManifestTableName>('DestinyDamageTypeDefinition');
+      const damageDefs = await getManifestTable<ManifestTableName>(
+        "DestinyDamageTypeDefinition",
+      );
       if (damageDefs) {
         damageTypeDefinition = damageDefs[itemDefinition.defaultDamageTypeHash];
       }
     }
 
     const inventoryData = $inventoryStore;
-    if (inventoryData && inventoryData.itemComponents.instances.data[item.itemInstanceId]) {
-      itemInstance = inventoryData.itemComponents.instances.data[item.itemInstanceId];
+    if (
+      inventoryData &&
+      inventoryData.itemComponents.instances.data[item.itemInstanceId]
+    ) {
+      itemInstance =
+        inventoryData.itemComponents.instances.data[item.itemInstanceId];
+      itemStats =
+        inventoryData.itemComponents.stats.data[item.itemInstanceId]?.stats;
     }
 
     loaded = true;
   });
 
-  $: powerLevel = itemInstance?.primaryStat?.value ?? 'N/A';
-  $: iconPath = overrideItemDefinition?.displayProperties.icon || itemDefinition?.displayProperties.icon;
+  $: powerLevel = itemInstance?.primaryStat?.value ?? "N/A";
+  $: iconPath =
+    overrideItemDefinition?.displayProperties.icon ||
+    itemDefinition?.displayProperties.icon;
+  $: plugItemHashes = item.plugItemHashes || null;
 </script>
 
-{#if loaded}
-  <div class="flex items-center rounded-md bg-secondary p-2">
-    <img
-      use:lazyLoad
-      data-src={`${BUNGIE_BASE_URL}${iconPath}`}
-      alt={itemDefinition.displayProperties.name}
-      class="mr-2 h-12 w-12"
-    />
-    <div class="flex-grow">
-      <p class="text-sm font-semibold">{itemDefinition.displayProperties.name}</p>
-      <p class="text-xs text-muted-foreground">Power: {powerLevel}</p>
-    </div>
-    {#if damageTypeDefinition}
+{#if loaded && itemDefinition}
+  <ItemHoverCard {itemDefinition} {itemInstance} {itemStats} {plugItemHashes}>
+    <div class="flex items-center rounded-md bg-secondary p-2">
       <img
         use:lazyLoad
-        data-src={`${BUNGIE_BASE_URL}${damageTypeDefinition.displayProperties.icon}`}
-        alt={damageTypeDefinition.displayProperties.name}
-        class="h-6 w-6"
+        data-src={`${BUNGIE_BASE_URL}${iconPath}`}
+        alt={itemDefinition.displayProperties.name}
+        class="mr-2 h-12 w-12"
       />
-    {/if}
-  </div>
+      <div class="flex-grow">
+        <p class="text-sm font-semibold">
+          {itemDefinition.displayProperties.name}
+        </p>
+        <p class="text-xs text-muted-foreground">Power: {powerLevel}</p>
+      </div>
+      {#if damageTypeDefinition}
+        <img
+          use:lazyLoad
+          data-src={`${BUNGIE_BASE_URL}${damageTypeDefinition.displayProperties.icon}`}
+          alt={damageTypeDefinition.displayProperties.name}
+          class="h-6 w-6"
+        />
+      {/if}
+    </div>
+  </ItemHoverCard>
 {:else}
   <Skeleton class="h-12 w-full rounded-md" />
 {/if}
