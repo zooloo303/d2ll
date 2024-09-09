@@ -1,23 +1,9 @@
 import type { Cookies } from "@sveltejs/kit";
 
-export interface BungieApiEvent {
-  fetch: typeof fetch;
-  cookies: Cookies;
-}
-
 export interface BungieNetUser {
   membershipId: string;
   displayName: string;
   profilePicturePath: string;
-}
-
-export interface UserData {
-  bungieNetUser: BungieNetUser;
-  destinyMemberships: Array<{
-    membershipType: number;
-    membershipId: string;
-    // Add other properties as needed
-  }>;
 }
 
 export interface ManifestTable {
@@ -36,6 +22,17 @@ export interface ManifestResponse {
     };
   };
 }
+
+export interface VersionMetadata {
+  key: "version";
+  value: string;
+}
+
+export interface TableMetadata {
+  table: string;
+  data: ManifestTable;
+}
+
 export type ManifestTableName =
   | "DestinyNodeStepSummaryDefinition"
   | "DestinyArtDyeChannelDefinition"
@@ -126,24 +123,6 @@ export type ManifestTableName =
   | "DestinyLoadoutConstantsDefinition"
   | "DestinyFireteamFinderConstantsDefinition";
 
-export interface CacheableValue {
-  [key: string]: unknown;
-  table?: string;
-  data?: ManifestTable;
-}
-export interface MetadataValue {
-  key: string;
-  value: string;
-}
-export interface VersionMetadata {
-  key: "version";
-  value: string;
-}
-
-export interface TableMetadata {
-  table: string;
-  data: ManifestTable;
-}
 
 // Character related types
 export enum ClassType {
@@ -184,8 +163,22 @@ export interface InventoryItem {
   transferStatus: number;
   lockable: boolean;
   state: number;
-  overrideStyleItemHash: number;
-  // Add other base properties as needed
+  dismantlePermission: number;
+  isWrapper: boolean;
+  tooltipNotificationIndexes: number[];
+  overrideStyleItemHash?: number;
+}
+
+export interface ItemComponents {
+  instances: { data: { [itemInstanceId: string]: ItemInstance } };
+  stats: { data: { [itemInstanceId: string]: ItemStats } };
+  sockets: { data: { [itemInstanceId: string]: { sockets: ItemSocket[] } } };
+}
+
+export interface InventoryItemWithComponents extends InventoryItem {
+  instance?: ItemInstance;
+  stats?: ItemStats;
+  sockets?: { sockets: ItemSocket[] };
 }
 
 export interface ItemInstance {
@@ -217,17 +210,6 @@ export interface ItemSocket {
   enabled: boolean;
 }
 
-export interface ItemComponents {
-  instances: { data: { [itemInstanceId: string]: ItemInstance } };
-  stats: { data: { [itemInstanceId: string]: ItemStats } };
-  sockets: { data: { [itemInstanceId: string]: { sockets: ItemSocket[] } } };
-}
-
-export interface InventoryItemWithComponents extends InventoryItem {
-  instance?: ItemInstance;
-  stats?: ItemStats;
-  sockets?: { sockets: ItemSocket[] };
-}
 
 export interface ItemDefinition {
   displayProperties: {
@@ -249,14 +231,6 @@ export interface DestinyInventoryBucketDefinition {
   };
   // Add other properties as needed
 }
-export interface DestinyStatDefinition {
-  displayProperties: {
-    description: string;
-    name: string;
-    icon: string;
-    hasIcon: boolean;
-  };
-}
 
 export interface CharacterLoadouts {
   [characterId: string]: {
@@ -276,18 +250,6 @@ export interface LoadoutItem {
   plugItemHashes: number[];
 }
 
-export interface DestinyLoadoutColorDefinition {
-  colorImagePath: string;
-}
-
-export interface DestinyLoadoutIconDefinition {
-  iconImagePath: string;
-}
-
-export interface DestinyLoadoutNameDefinition {
-  name: string;
-}
-
 export interface CompleteInventoryResponse {
   profileInventory: {
     items: InventoryItem[];
@@ -303,11 +265,6 @@ export interface CompleteInventoryResponse {
     };
   };
   itemComponents: ItemComponents;
-}
-
-export interface DestinyInventoryItemDefinition {
-  itemType: number;
-  // Add other properties as needed
 }
 
 export enum DestinyItemType {

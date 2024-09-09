@@ -7,6 +7,9 @@
   import type { Loadout, ManifestTableName } from "$lib/utils/types";
   import { getManifestTable } from "$lib/services/manifest";
   import { BUNGIE_BASE_URL } from "$lib/utils/constants";
+  import { createEventDispatcher } from "svelte";
+
+  const dispatch = createEventDispatcher();
 
   $: characters = $characterStore.characters;
   $: loadouts = $characterStore.loadouts;
@@ -35,12 +38,8 @@
   ];
 
   async function getStatIcon(statHash: string): Promise<string> {
-    const statDef = await getManifestTable<ManifestTableName>(
-      "DestinyStatDefinition",
-    );
-    return statDef && statDef[statHash]?.displayProperties?.icon
-      ? `${BUNGIE_BASE_URL}${statDef[statHash].displayProperties.icon}`
-      : "";
+    const statDef = await getManifestTable<ManifestTableName>("DestinyStatDefinition") as Record<string, { displayProperties: { icon: string } }>;
+    return `${BUNGIE_BASE_URL}${statDef?.[statHash]?.displayProperties?.icon ?? ''}`;
   }
 
   async function getLoadoutDetails(loadout: Loadout) {
@@ -61,6 +60,10 @@
           : null,
       name: (nameDef && nameDef[loadout.nameHash]?.name) || null,
     };
+  }
+
+  function selectLoadout(loadout: Loadout) {
+    dispatch("selectLoadout", loadout);
   }
 </script>
 
@@ -87,6 +90,7 @@
                 <Badge>{getClassName(character.classType)}</Badge>
               </div>
             </div>
+            <div class="flex flex-row items-center"> 
             <div class="p-4">
               <div class="grid grid-cols-3 gap-2">
                 {#each statOrder as statHash}
@@ -110,7 +114,10 @@
                 {#each loadouts[characterId]?.loadouts || [] as loadout}
                   {#await getLoadoutDetails(loadout) then details}
                     {#if details.color && details.icon && details.name}
-                      <div class="flex flex-col items-center">
+                      <button
+                        class="flex flex-col items-center"
+                        on:click={() => selectLoadout(loadout)}
+                      >
                         <div
                           class="mb-2 flex h-12 w-12 items-center justify-center rounded-md bg-cover bg-center"
                           style="background-image: url('{details.color}');"
@@ -122,12 +129,13 @@
                           />
                         </div>
                         <span class="text-center text-sm">{details.name}</span>
-                      </div>
+                      </button>
                     {/if}
                   {/await}
                 {/each}
               </div>
             </div>
+          </div>
           </CardContent>
         </Card>
       {/each}
