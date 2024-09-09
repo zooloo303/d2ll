@@ -11,16 +11,17 @@
 
   let groupedItems: Record<number, InventoryItem[]> = {};
   let loading = true;
+  let itemDefs: Record<string, any> | null = null;
 
-  $: if (loadout) {
+  $: if (loadout && itemDefs) {
+    console.time('groupItems');
     groupItems();
+    console.timeEnd('groupItems');
   }
 
   async function groupItems() {
     loading = true;
     const tempGroupedItems: Record<number, InventoryItem[]> = {};
-
-    const itemDefs = await getManifestTable<ManifestTableName>('DestinyInventoryItemDefinition');
 
     if (itemDefs) {
       const inventoryData: CompleteInventoryResponse | null = $inventoryStore;
@@ -47,40 +48,31 @@
 
   function findItemInInventory(inventoryData: CompleteInventoryResponse | null, itemInstanceId: string): InventoryItem | undefined {
     if (!inventoryData) return undefined;
-    // Check in profile inventory
-    let item = inventoryData.profileInventory.items.find(i => i.itemInstanceId === itemInstanceId);
-    if (item) return item;
+    
+    // Combine all items into a single array for faster searching
+    const allItems = [
+      ...inventoryData.profileInventory.items,
+      ...Object.values(inventoryData.characterInventories).flatMap(inv => inv.items),
+      ...Object.values(inventoryData.characterEquipment).flatMap(eq => eq.items)
+    ];
 
-    // Check in character inventories
-    for (const characterId in inventoryData.characterInventories) {
-      item = inventoryData.characterInventories[characterId].items.find(i => i.itemInstanceId === itemInstanceId);
-      if (item) return item;
-    }
-
-    // Check in character equipment
-    for (const characterId in inventoryData.characterEquipment) {
-      item = inventoryData.characterEquipment[characterId].items.find(i => i.itemInstanceId === itemInstanceId);
-      if (item) return item;
-    }
-
-    return undefined;
+    return allItems.find(i => i.itemInstanceId === itemInstanceId);
   }
+
+  const itemTypeNames: Record<number, string> = {
+    16: 'Subclass',
+    3: 'Weapons',
+    2: 'Armor',
+  };
 
   function getItemTypeName(itemType: number): string {
-    switch (itemType) {
-      case 16:
-        return 'Subclass';
-      case 3:
-        return 'Weapons';
-      case 2:
-        return 'Armor';
-      default:
-        return 'Other';
-    }
+    return itemTypeNames[itemType] || 'Other';
   }
 
-  onMount(() => {
-    groupItems();
+  onMount(async () => {
+    console.time('fetchManifest');
+    itemDefs = await getManifestTable<ManifestTableName>('DestinyInventoryItemDefinition');
+    console.timeEnd('fetchManifest');
   });
 </script>
 

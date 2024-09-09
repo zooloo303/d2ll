@@ -217,12 +217,22 @@ export interface ItemDefinition {
     icon: string;
   };
   itemType: number;
+  itemTypeDisplayName: string;
   itemSubType: number;
   classType: number;
   inventory: {
     bucketTypeHash: number;
   };
   defaultDamageTypeHash?: number;
+  flavorText?: string;
+  screenshot?: string;
+  sockets?: {
+    socketEntries: Array<{
+      reusablePlugItems: Array<{
+        plugItemHash: number;
+      }>;
+    }>;
+  };
 }
 export interface DestinyInventoryBucketDefinition {
   displayProperties: {

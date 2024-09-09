@@ -5,6 +5,7 @@
   import { BUNGIE_BASE_URL } from '$lib/utils/constants';
   import { inventoryStore } from '$lib/stores/inventory';
   import type { InventoryItem, ManifestTableName, ItemInstance } from '$lib/utils/types';
+  import { lazyLoad } from '$lib/utils/helpers';
 
   export let item: InventoryItem;
 
@@ -12,6 +13,7 @@
   let overrideItemDefinition: any | null = null;
   let damageTypeDefinition: any | null = null;
   let itemInstance: ItemInstance | null = null;
+  let loaded = false;
 
   onMount(async () => {
     const itemDefs = await getManifestTable<ManifestTableName>('DestinyInventoryItemDefinition');
@@ -29,21 +31,23 @@
       }
     }
 
-    // Get the item instance from the inventory store
     const inventoryData = $inventoryStore;
     if (inventoryData && inventoryData.itemComponents.instances.data[item.itemInstanceId]) {
       itemInstance = inventoryData.itemComponents.instances.data[item.itemInstanceId];
     }
+
+    loaded = true;
   });
 
   $: powerLevel = itemInstance?.primaryStat?.value ?? 'N/A';
   $: iconPath = overrideItemDefinition?.displayProperties.icon || itemDefinition?.displayProperties.icon;
 </script>
 
-{#if itemDefinition}
+{#if loaded}
   <div class="flex items-center rounded-md bg-secondary p-2">
     <img
-      src={`${BUNGIE_BASE_URL}${iconPath}`}
+      use:lazyLoad
+      data-src={`${BUNGIE_BASE_URL}${iconPath}`}
       alt={itemDefinition.displayProperties.name}
       class="mr-2 h-12 w-12"
     />
@@ -53,7 +57,8 @@
     </div>
     {#if damageTypeDefinition}
       <img
-        src={`${BUNGIE_BASE_URL}${damageTypeDefinition.displayProperties.icon}`}
+        use:lazyLoad
+        data-src={`${BUNGIE_BASE_URL}${damageTypeDefinition.displayProperties.icon}`}
         alt={damageTypeDefinition.displayProperties.name}
         class="h-6 w-6"
       />
