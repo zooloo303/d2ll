@@ -10,6 +10,7 @@
     ItemInstance,
     ItemDefinition,
     ItemStats,
+    StatDefinition,
   } from "$lib/utils/types";
   import { lazyLoad } from "$lib/utils/helpers";
   import ItemHoverCard from "./ItemHoverCard.svelte";
@@ -21,12 +22,11 @@
   let damageTypeDefinition: any | null = null;
   let itemInstance: ItemInstance | null = null;
   let itemStats: ItemStats | null = null;
+  let statDefinitions: { [statHash: string]: StatDefinition } | null = null;
   let loaded = false;
 
   onMount(async () => {
-    const itemDefs = await getManifestTable<ManifestTableName>(
-      "DestinyInventoryItemDefinition",
-    );
+    const itemDefs = await getManifestTable<ItemDefinition>("DestinyInventoryItemDefinition");
     if (itemDefs) {
       itemDefinition = itemDefs[item.itemHash];
       if (item.overrideStyleItemHash) {
@@ -46,12 +46,19 @@
     const inventoryData = $inventoryStore;
     if (
       inventoryData &&
-      inventoryData.itemComponents.instances.data[item.itemInstanceId]
+      inventoryData.itemComponents.instances.data[item.itemInstanceId] &&
+      inventoryData.itemComponents.stats.data[item.itemInstanceId]
     ) {
       itemInstance =
         inventoryData.itemComponents.instances.data[item.itemInstanceId];
       itemStats =
-        inventoryData.itemComponents.stats.data[item.itemInstanceId]?.stats;
+        inventoryData.itemComponents.stats.data[item.itemInstanceId].stats;
+    }
+
+    // Fetch stat definitions
+    const statDefs = await getManifestTable<StatDefinition>("DestinyStatDefinition");
+    if (statDefs) {
+      statDefinitions = statDefs;
     }
 
     loaded = true;
@@ -61,11 +68,10 @@
   $: iconPath =
     overrideItemDefinition?.displayProperties.icon ||
     itemDefinition?.displayProperties.icon;
-  $: plugItemHashes = item.plugItemHashes || null;
 </script>
 
 {#if loaded && itemDefinition}
-  <ItemHoverCard {itemDefinition} {itemInstance} {itemStats} {plugItemHashes}>
+  <ItemHoverCard {itemDefinition} {itemInstance} {itemStats} {overrideItemDefinition}>
     <div class="flex items-center rounded-md bg-secondary p-2">
       <img
         use:lazyLoad

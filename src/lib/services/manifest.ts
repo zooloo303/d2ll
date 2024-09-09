@@ -116,8 +116,9 @@ export async function updateManifest(
   console.log("Manifest update complete");
 }
 
-export async function getManifestTable<T extends ManifestTableName>(
-  tableName: T,
-): Promise<ManifestTable | null> {
-  return getTable(tableName);
+export async function getManifestTable<T>(
+  tableName: ManifestTableName
+): Promise<Record<string, T> | null> {
+  const table = await getTable(tableName);
+  return table as unknown as Record<string, T> | null;
 }

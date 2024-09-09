@@ -38,7 +38,7 @@
   ];
 
   async function getStatIcon(statHash: string): Promise<string> {
-    const statDef = await getManifestTable<ManifestTableName>("DestinyStatDefinition") as Record<string, { displayProperties: { icon: string } }>;
+    const statDef = await getManifestTable<ManifestTableName>("DestinyStatDefinition");
     return `${BUNGIE_BASE_URL}${statDef?.[statHash]?.displayProperties?.icon ?? ''}`;
   }
 

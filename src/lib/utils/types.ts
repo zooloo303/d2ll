@@ -168,7 +168,7 @@ export interface InventoryItem {
 
 export interface ItemComponents {
   instances: { data: { [itemInstanceId: string]: ItemInstance } };
-  stats: { data: { [itemInstanceId: string]: ItemStats } };
+  stats: { data: { [itemInstanceId: string]: { stats: ItemStats } } };
   sockets: { data: { [itemInstanceId: string]: { sockets: ItemSocket[] } } };
 }
 
@@ -197,14 +197,31 @@ export interface ItemInstance {
 export interface ItemStat {
   statHash: number;
   value: number;
-  name?: string;
-  description?: string;
+  minimum?: number;
+  maximum?: number;
+  displayMaximum?: number;
+}
+
+export interface ItemStats {
+  [statHash: string]: ItemStat;
 }
 
 export interface ItemSocket {
   plugItemHash: number;
   canInsert: boolean;
   enabled: boolean;
+}
+
+export interface StatDefinition {
+  displayProperties: {
+    name: string;
+    description: string;
+    icon: string;
+  };
+  aggregationType: number;
+  hasComputedBlock: boolean;
+  statCategory: number;
+  interpolate: boolean;
 }
 
 export interface ItemDefinition {
@@ -217,9 +234,7 @@ export interface ItemDefinition {
   itemTypeDisplayName: string;
   itemSubType: number;
   classType: number;
-  stats: {
-    [statHash: number]: ItemStat;
-  };
+  stats: ItemStats;
   inventory: {
     bucketTypeHash: number;
   };
@@ -233,7 +248,10 @@ export interface ItemDefinition {
       }>;
     }>;
   };
+  hasDisplayableStats: boolean;
+  primaryBaseStatHash: number;
 }
+
 export interface DestinyInventoryBucketDefinition {
   displayProperties: {
     name: string;
