@@ -6,27 +6,27 @@
   import { inventoryStore } from "$lib/stores/inventory";
   import type {
     InventoryItem,
-    ManifestTableName,
     ItemInstance,
-    ItemDefinition,
     ItemStats,
-    StatDefinition,
+    DestinyStatDefinition,
+    DestinyDamageTypeDefinition,
+    DestinyInventoryItemDefinition
   } from "$lib/utils/types";
   import { lazyLoad } from "$lib/utils/helpers";
   import ItemHoverCard from "./ItemHoverCard.svelte";
 
   export let item: InventoryItem;
 
-  let itemDefinition: ItemDefinition | null = null;
-  let overrideItemDefinition: ItemDefinition | null = null;
+  let itemDefinition: DestinyInventoryItemDefinition | null = null;
+  let overrideItemDefinition: DestinyInventoryItemDefinition | null = null;
   let damageTypeDefinition: any | null = null;
   let itemInstance: ItemInstance | null = null;
   let itemStats: ItemStats | null = null;
-  let statDefinitions: { [statHash: string]: StatDefinition } | null = null;
+  let statDefinitions: { [statHash: string]: DestinyStatDefinition } | null = null;
   let loaded = false;
 
   onMount(async () => {
-    const itemDefs = await getManifestTable<ItemDefinition>("DestinyInventoryItemDefinition");
+    const itemDefs = await getManifestTable<DestinyInventoryItemDefinition>("DestinyInventoryItemDefinition");
     if (itemDefs) {
       itemDefinition = itemDefs[item.itemHash];
       if (item.overrideStyleItemHash) {
@@ -35,7 +35,7 @@
     }
 
     if (itemDefinition?.defaultDamageTypeHash) {
-      const damageDefs = await getManifestTable<ManifestTableName>(
+      const damageDefs = await getManifestTable<DestinyDamageTypeDefinition>(
         "DestinyDamageTypeDefinition",
       );
       if (damageDefs) {
@@ -56,7 +56,7 @@
     }
 
     // Fetch stat definitions
-    const statDefs = await getManifestTable<StatDefinition>("DestinyStatDefinition");
+    const statDefs = await getManifestTable<DestinyStatDefinition>("DestinyStatDefinition");
     if (statDefs) {
       statDefinitions = statDefs;
     }

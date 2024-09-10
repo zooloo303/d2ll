@@ -1,12 +1,16 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { getManifestTable } from '$lib/services/manifest';
-  import { inventoryStore } from '$lib/stores/inventory';
   import Item from './Item.svelte';
-  import type { Loadout, InventoryItem, ManifestTableName, CompleteInventoryResponse } from '$lib/utils/types';
-  import { Card, CardContent } from '$lib/components/ui/card';
   import { Skeleton } from '$lib/components/ui/skeleton';
-
+  import { inventoryStore } from '$lib/stores/inventory';
+  import { getManifestTable } from '$lib/services/manifest';
+  import { Card, CardContent } from '$lib/components/ui/card';
+  import type { Loadout, 
+                InventoryItem, 
+                CompleteInventoryResponse, 
+                DestinyInventoryItemDefinition 
+              } from '$lib/utils/types';
+  
   export let loadout: Loadout;
 
   let groupedItems: Record<number, InventoryItem[]> = {};
@@ -71,7 +75,7 @@
 
   onMount(async () => {
     console.time('fetchManifest');
-    itemDefs = await getManifestTable<ManifestTableName>('DestinyInventoryItemDefinition');
+    itemDefs = await getManifestTable<DestinyInventoryItemDefinition>('DestinyInventoryItemDefinition');
     console.timeEnd('fetchManifest');
   });
 </script>

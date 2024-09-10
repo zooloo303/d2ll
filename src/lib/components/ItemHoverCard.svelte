@@ -7,22 +7,22 @@
   import { Progress } from "$lib/components/ui/progress";
   import { getManifestTable } from "$lib/services/manifest";
   import type {
-    ItemDefinition,
     ItemInstance,
     ItemStats,
-    StatDefinition,
+    DestinyStatDefinition,
+    DestinyInventoryItemDefinition
   } from "$lib/utils/types";
   import { BUNGIE_BASE_URL } from "$lib/utils/constants";
 
-  export let itemDefinition: ItemDefinition;
+  export let itemDefinition: DestinyInventoryItemDefinition;
   export let itemInstance: ItemInstance | null = null;
   export let itemStats: ItemStats | null = null;
-  export let overrideItemDefinition: ItemDefinition | null = null;
+  export let overrideItemDefinition: DestinyInventoryItemDefinition | null = null;
 
-  let statDefinitions: Record<string, StatDefinition> | null = null;
+  let statDefinitions: Record<string, DestinyStatDefinition> | null = null;
 
   async function loadStatDefinitions() {
-    statDefinitions = await getManifestTable<StatDefinition>("DestinyStatDefinition");
+    statDefinitions = await getManifestTable<DestinyStatDefinition>("DestinyStatDefinition");
   }
 
   loadStatDefinitions();

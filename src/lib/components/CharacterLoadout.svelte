@@ -1,13 +1,18 @@
 <script lang="ts">
-  import { Card, CardContent } from "$lib/components/ui/card";
-  import { Avatar, AvatarImage } from "$lib/components/ui/avatar";
+  import { createEventDispatcher } from "svelte";
   import { Badge } from "$lib/components/ui/badge";
+  import { BUNGIE_BASE_URL } from "$lib/utils/constants";
   import { Skeleton } from "$lib/components/ui/skeleton";
   import { characterStore } from "$lib/stores/characters";
-  import type { Loadout, ManifestTableName } from "$lib/utils/types";
   import { getManifestTable } from "$lib/services/manifest";
-  import { BUNGIE_BASE_URL } from "$lib/utils/constants";
-  import { createEventDispatcher } from "svelte";
+  import { Card, CardContent } from "$lib/components/ui/card";
+  import { Avatar, AvatarImage } from "$lib/components/ui/avatar";
+  import type { Loadout, 
+                DestinyStatDefinition,
+                DestinyLoadoutColorDefinition, 
+                DestinyLoadoutIconDefinition,
+                DestinyLoadoutNameDefinition 
+              } from "$lib/utils/types";
 
   const dispatch = createEventDispatcher();
 
@@ -38,15 +43,15 @@
   ];
 
   async function getStatIcon(statHash: string): Promise<string> {
-    const statDef = await getManifestTable<ManifestTableName>("DestinyStatDefinition");
+    const statDef = await getManifestTable<DestinyStatDefinition>("DestinyStatDefinition");
     return `${BUNGIE_BASE_URL}${statDef?.[statHash]?.displayProperties?.icon ?? ''}`;
   }
 
   async function getLoadoutDetails(loadout: Loadout) {
     const [colorDef, iconDef, nameDef] = await Promise.all([
-      getManifestTable<ManifestTableName>("DestinyLoadoutColorDefinition"),
-      getManifestTable<ManifestTableName>("DestinyLoadoutIconDefinition"),
-      getManifestTable<ManifestTableName>("DestinyLoadoutNameDefinition"),
+    getManifestTable<DestinyLoadoutColorDefinition>("DestinyLoadoutColorDefinition"),
+    getManifestTable<DestinyLoadoutIconDefinition>("DestinyLoadoutIconDefinition"),
+    getManifestTable<DestinyLoadoutNameDefinition>("DestinyLoadoutNameDefinition"),
     ]);
 
     return {

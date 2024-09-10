@@ -1,7 +1,6 @@
 import { BUNGIE_API_ROOT, BUNGIE_BASE_URL } from "$lib/utils/constants";
 import type {
   ManifestResponse,
-  ManifestTableName,
   ManifestTable,
   VersionMetadata,
   TableMetadata,
@@ -117,8 +116,8 @@ export async function updateManifest(
 }
 
 export async function getManifestTable<T>(
-  tableName: ManifestTableName
+  tableName: string
 ): Promise<Record<string, T> | null> {
   const table = await getTable(tableName);
-  return table as unknown as Record<string, T> | null;
+  return table as Record<string, T> | null;
 }

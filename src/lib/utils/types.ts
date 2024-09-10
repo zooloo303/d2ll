@@ -212,18 +212,6 @@ export interface ItemSocket {
   enabled: boolean;
 }
 
-export interface StatDefinition {
-  displayProperties: {
-    name: string;
-    description: string;
-    icon: string;
-  };
-  aggregationType: number;
-  hasComputedBlock: boolean;
-  statCategory: number;
-  interpolate: boolean;
-}
-
 export interface ItemDefinition {
   displayProperties: {
     name: string;
@@ -250,14 +238,6 @@ export interface ItemDefinition {
   };
   hasDisplayableStats: boolean;
   primaryBaseStatHash: number;
-}
-
-export interface DestinyInventoryBucketDefinition {
-  displayProperties: {
-    name: string;
-    // Add other properties as needed
-  };
-  // Add other properties as needed
 }
 
 export interface CharacterLoadouts {
@@ -369,3 +349,91 @@ export type BungieApiRequestBody =
   | DestinyItemActionRequest
   | DestinyItemSetActionRequest
   | Record<string, never>;
+
+
+
+
+  // manifest types
+export interface DestinyInventoryBucketDefinition {
+    displayProperties: {
+      name: string;
+      // Add other properties as needed
+    };
+    // Add other properties as needed
+  }
+
+export interface DestinyStatDefinition {
+    displayProperties: {
+      name: string;
+      description: string;
+      icon: string;
+    };
+    aggregationType: number;
+    hasComputedBlock: boolean;
+    statCategory: number;
+    interpolate: boolean;
+  }
+
+  export interface StatDefinition {
+    displayProperties: {
+      name: string;
+      description: string;
+      icon: string;
+    };
+    aggregationType: number;
+    hasComputedBlock: boolean;
+    statCategory: number;
+    interpolate: boolean;
+  }
+  
+export interface DestinyLoadoutColorDefinition {
+    colorImagePath: string;
+    // Add other properties as needed
+  }
+  
+export interface DestinyLoadoutIconDefinition {
+    iconImagePath: string;
+    // Add other properties as needed
+  }
+  
+export interface DestinyLoadoutNameDefinition {
+    name: string;
+    // Add other properties as needed
+  }
+  
+export interface DestinyInventoryItemDefinition {
+  displayProperties: {
+    name: string;
+    icon: string;
+    description: string;
+  };
+  itemType: number;
+  itemTypeDisplayName: string;
+  itemSubType: number;
+  classType: number;
+  stats: ItemStats;
+  inventory: {
+    bucketTypeHash: number;
+  };
+  defaultDamageTypeHash?: number;
+  flavorText?: string;
+  screenshot?: string;
+  sockets?: {
+    socketEntries: Array<{
+      reusablePlugItems: Array<{
+        plugItemHash: number;
+      }>;
+    }>;
+  };
+  hasDisplayableStats: boolean;
+  primaryBaseStatHash: number;
+}
+
+export interface DestinyDamageTypeDefinition {
+    displayProperties: {
+      name: string;
+      description: string;
+      icon: string;
+    };
+    // Add other properties as needed
+  }

@@ -21,8 +21,8 @@ function createManifestStore() {
             progress.set(100);
             console.log('Manifest initialized');
         },
-        getTable: async <T extends ManifestTableName>(tableName: T) => {
-            const table = await getManifestTable(tableName);
+        getTable: async <T>(tableName: string) => {
+            const table = await getManifestTable<T>(tableName);
             if (table) {
                 tables.update((current) => ({ ...current, [tableName]: table }));
             }
