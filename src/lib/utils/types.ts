@@ -207,37 +207,9 @@ export interface ItemStats {
 }
 
 export interface ItemSocket {
-  plugItemHash: number;
-  canInsert: boolean;
-  enabled: boolean;
-}
-
-export interface ItemDefinition {
-  displayProperties: {
-    name: string;
-    icon: string;
-    description: string;
-  };
-  itemType: number;
-  itemTypeDisplayName: string;
-  itemSubType: number;
-  classType: number;
-  stats: ItemStats;
-  inventory: {
-    bucketTypeHash: number;
-  };
-  defaultDamageTypeHash?: number;
-  flavorText?: string;
-  screenshot?: string;
-  sockets?: {
-    socketEntries: Array<{
-      reusablePlugItems: Array<{
-        plugItemHash: number;
-      }>;
-    }>;
-  };
-  hasDisplayableStats: boolean;
-  primaryBaseStatHash: number;
+  plugHash: number;
+  isEnabled: boolean;
+  isVisible: boolean;
 }
 
 export interface CharacterLoadouts {
@@ -374,18 +346,6 @@ export interface DestinyStatDefinition {
     interpolate: boolean;
   }
 
-  export interface StatDefinition {
-    displayProperties: {
-      name: string;
-      description: string;
-      icon: string;
-    };
-    aggregationType: number;
-    hasComputedBlock: boolean;
-    statCategory: number;
-    interpolate: boolean;
-  }
-  
 export interface DestinyLoadoutColorDefinition {
     colorImagePath: string;
     // Add other properties as needed

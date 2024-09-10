@@ -8,24 +8,32 @@
   import { getManifestTable } from "$lib/services/manifest";
   import type {
     ItemInstance,
+    ItemSocket,
     ItemStats,
     DestinyStatDefinition,
     DestinyInventoryItemDefinition
   } from "$lib/utils/types";
   import { BUNGIE_BASE_URL } from "$lib/utils/constants";
+  import { Tooltip, TooltipContent, TooltipTrigger } from "$lib/components/ui/tooltip";
+  import { onMount } from 'svelte';
 
   export let itemDefinition: DestinyInventoryItemDefinition;
   export let itemInstance: ItemInstance | null = null;
   export let itemStats: ItemStats | null = null;
   export let overrideItemDefinition: DestinyInventoryItemDefinition | null = null;
+  export let itemSockets: ItemSocket[] | null = null;
 
   let statDefinitions: Record<string, DestinyStatDefinition> | null = null;
+  let socketDefinitions: Record<string, DestinyInventoryItemDefinition> | null = null;
 
-  async function loadStatDefinitions() {
-    statDefinitions = await getManifestTable<DestinyStatDefinition>("DestinyStatDefinition");
+  async function loadDefinitions() {
+    [statDefinitions, socketDefinitions] = await Promise.all([
+      getManifestTable<DestinyStatDefinition>("DestinyStatDefinition"),
+      getManifestTable<DestinyInventoryItemDefinition>("DestinyInventoryItemDefinition")
+    ]);
   }
 
-  loadStatDefinitions();
+  onMount(loadDefinitions);
 
   $: combinedStats = itemStats
     ? Object.entries(itemStats).reduce((acc, [statHash, stat]) => {
@@ -34,7 +42,7 @@
           ...definitionStat,
           ...stat,
           value: stat.value,
-          displayMaximum: stat.displayMaximum || 100, // Use 100 as default if not set
+          displayMaximum: stat.displayMaximum || 100,
         };
         return acc;
       }, {} as ItemStats)
@@ -43,13 +51,14 @@
   $: displayedDefinition = overrideItemDefinition || itemDefinition;
   $: iconPath = displayedDefinition.displayProperties.icon;
   $: screenshotPath = displayedDefinition.screenshot;
+  $: visibleSockets = itemSockets?.filter(socket => socket.isVisible) ?? [];
 </script>
 
 <HoverCard>
   <HoverCardTrigger>
     <slot />
   </HoverCardTrigger>
-  <HoverCardContent>
+  <HoverCardContent class="w-80">
     <div class="flex flex-col space-y-2">
       <h3 class="text-lg font-bold">{itemDefinition.displayProperties.name}</h3>
       <img
@@ -68,6 +77,34 @@
           alt="Item screenshot"
           class="h-32 w-full object-cover"
         />
+      {/if}
+      {#if visibleSockets.length > 0 && socketDefinitions}
+        <div class="w-full mb-2">
+          <h4 class="text-sm font-semibold mb-1">Sockets:</h4>
+          <div class="flex flex-wrap gap-1">
+            {#each visibleSockets as socket}
+              {#if socketDefinitions[socket.plugHash]}
+                <Tooltip>
+                  <TooltipTrigger>
+                    <img
+                      src={`${BUNGIE_BASE_URL}${socketDefinitions[socket.plugHash].displayProperties.icon}`}
+                      alt={socketDefinitions[socket.plugHash].displayProperties.name}
+                      class="w-6 h-6"
+                      class:opacity-50={!socket.isEnabled}
+                    />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{socketDefinitions[socket.plugHash].displayProperties.name}</p>
+                    <p>{socketDefinitions[socket.plugHash].displayProperties.description}</p>
+                    {#if !socket.isEnabled}
+                      <p class="text-yellow-500">This socket is currently disabled.</p>
+                    {/if}
+                  </TooltipContent>
+                </Tooltip>
+              {/if}
+            {/each}
+          </div>
+        </div>
       {/if}
       {#if combinedStats && statDefinitions}
         <div class="w-full">

@@ -68,10 +68,17 @@
   $: iconPath =
     overrideItemDefinition?.displayProperties.icon ||
     itemDefinition?.displayProperties.icon;
+  $: socketData = $inventoryStore?.itemComponents.sockets.data[item.itemInstanceId]?.sockets;
 </script>
 
 {#if loaded && itemDefinition}
-  <ItemHoverCard {itemDefinition} {itemInstance} {itemStats} {overrideItemDefinition}>
+  <ItemHoverCard 
+    {itemDefinition} 
+    {itemInstance} 
+    {itemStats} 
+    {overrideItemDefinition} 
+    itemSockets={socketData}
+  >
     <div class="flex items-center rounded-md bg-secondary p-2">
       <img
         use:lazyLoad
