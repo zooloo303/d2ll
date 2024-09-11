@@ -4,15 +4,22 @@
   import Loadout from "$lib/components/Loadout.svelte";
   import { Skeleton } from "$lib/components/ui/skeleton";
   import { writable } from "svelte/store";
+  import type { Character, Loadout as LoadoutType } from "$lib/utils/types";
 
   $: charactersLoaded = Object.keys($characterStore.characters).length > 0;
   $: loadoutsLoaded = Object.keys($characterStore.loadouts).length > 0;
 
-  const selectedLoadout = writable(null);
+  const selectedLoadout = writable<LoadoutType | null>(null);
+  const selectedCharacter = writable<Character | null>(null);
 
-  function handleSelectLoadout(event: { detail: null; }) {
-    selectedLoadout.set(event.detail);
+  function handleSelectLoadout(event: CustomEvent<{ loadout: LoadoutType; character: Character }>) {
+    selectedLoadout.set(event.detail.loadout);
+    selectedCharacter.set(event.detail.character);
+    console.log("Selected loadout:", event.detail.loadout);
+    console.log("Selected character:", event.detail.character);
   }
+
+  $: characters = Object.values($characterStore.characters);
 </script>
 
 <div class="flex h-screen">
@@ -30,8 +37,12 @@
     {/if}
   </div>
   <div class="w-1/2 overflow-y-auto">
-    {#if $selectedLoadout}
-      <Loadout loadout={$selectedLoadout} />
+    {#if $selectedLoadout && $selectedCharacter}
+      <Loadout 
+        loadout={$selectedLoadout} 
+        loadoutIndex={$characterStore.loadouts[$selectedCharacter.characterId].loadouts.indexOf($selectedLoadout)} 
+        character={$selectedCharacter} 
+      />
     {:else}
       <div class="flex h-full items-center justify-center">
         <p class="text-center text-lg text-gray-500">Choose a loadout to display details</p>

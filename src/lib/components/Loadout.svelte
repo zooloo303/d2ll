@@ -7,12 +7,15 @@
   import { getManifestTable } from '$lib/services/manifest';
   import { Card, CardContent } from '$lib/components/ui/card';
   import type { Loadout, 
+                Character,
                 InventoryItem, 
                 CompleteInventoryResponse, 
                 DestinyInventoryItemDefinition 
               } from '$lib/utils/types';
   
   export let loadout: Loadout;
+  export let loadoutIndex: number;
+  export let character: Character;
 
   let groupedItems: Record<number, InventoryItem[]> = {};
   let loading = true;
@@ -106,5 +109,7 @@
       </Card>
     {/each}
   </div>
-  <LoadoutActions {loadout} characterId={loadout.characterId} />
+  <div class="p-4">
+  <LoadoutActions {loadout} {loadoutIndex} {character} />
+</div>
 {/if}

@@ -4,6 +4,15 @@ export interface BungieNetUser {
   profilePicturePath: string;
 }
 
+export interface UserData {
+  bungieNetUser: {
+    membershipId: string;
+    displayName: string;
+    profilePicturePath: string;
+  };
+  destinyMemberships: any[]; // Replace 'any[]' with the correct type if available
+}
+
 export interface ManifestTable {
   [key: string]: {
     [subKey: string]: unknown;
@@ -131,6 +140,7 @@ export enum ClassType {
 
 export interface Character {
   characterId: string;
+  membershipType: number;
   dateLastPlayed: string;
   minutesPlayedTotal: string;
   light: number;
@@ -322,8 +332,7 @@ export type BungieApiRequestBody =
   | DestinyItemSetActionRequest
   | Record<string, never>;
 
-
-  // manifest types
+// manifest types
 export interface DestinyInventoryBucketDefinition {
     displayProperties: {
       name: string;
@@ -389,3 +398,4 @@ export interface DestinyDamageTypeDefinition {
       icon: string;
     };
   }
+

@@ -1,4 +1,4 @@
-import { writable } from 'svelte/store';
+import { writable, get } from 'svelte/store';
 import type { Writable } from 'svelte/store';
 import type { UserData } from '$lib/utils/types';
 
@@ -41,7 +41,8 @@ function createUserStore() {
     save: (userData: UserData) => {
       localStorage.setItem('userData', JSON.stringify(userData));
       set(userData);
-    }
+    },
+    getUser: () => get({ subscribe }) 
   };
 }
 

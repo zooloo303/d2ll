@@ -13,8 +13,11 @@
                 DestinyLoadoutIconDefinition,
                 DestinyLoadoutNameDefinition 
               } from "$lib/utils/types";
+  import type { Character } from "$lib/utils/types";
 
-  const dispatch = createEventDispatcher();
+  const dispatch = createEventDispatcher<{
+    selectLoadout: { loadout: Loadout; character: Character };
+  }>();
 
   $: characters = $characterStore.characters;
   $: loadouts = $characterStore.loadouts;
@@ -67,8 +70,8 @@
     };
   }
 
-  function selectLoadout(loadout: Loadout) {
-    dispatch("selectLoadout", loadout);
+  function selectLoadout(loadout: Loadout, character: Character) {
+    dispatch("selectLoadout", { loadout, character });
   }
 </script>
 
@@ -121,7 +124,7 @@
                     {#if details.color && details.icon && details.name}
                       <button
                         class="flex flex-col items-center"
-                        on:click={() => selectLoadout(loadout)}
+                        on:click={() => selectLoadout(loadout, character)}
                       >
                         <div
                           class="mb-2 flex h-12 w-12 items-center justify-center rounded-md bg-cover bg-center"
