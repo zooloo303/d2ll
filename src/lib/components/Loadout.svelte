@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import Item from './Item.svelte';
+  import LoadoutActions from "./LoadoutActions.svelte";
   import { Skeleton } from '$lib/components/ui/skeleton';
   import { inventoryStore } from '$lib/stores/inventory';
   import { getManifestTable } from '$lib/services/manifest';
@@ -105,4 +106,5 @@
       </Card>
     {/each}
   </div>
+  <LoadoutActions {loadout} characterId={loadout.characterId} />
 {/if}

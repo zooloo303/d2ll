@@ -323,15 +323,11 @@ export type BungieApiRequestBody =
   | Record<string, never>;
 
 
-
-
   // manifest types
 export interface DestinyInventoryBucketDefinition {
     displayProperties: {
       name: string;
-      // Add other properties as needed
     };
-    // Add other properties as needed
   }
 
 export interface DestinyStatDefinition {
@@ -348,17 +344,14 @@ export interface DestinyStatDefinition {
 
 export interface DestinyLoadoutColorDefinition {
     colorImagePath: string;
-    // Add other properties as needed
   }
   
 export interface DestinyLoadoutIconDefinition {
     iconImagePath: string;
-    // Add other properties as needed
   }
   
 export interface DestinyLoadoutNameDefinition {
     name: string;
-    // Add other properties as needed
   }
   
 export interface DestinyInventoryItemDefinition {
@@ -395,5 +388,4 @@ export interface DestinyDamageTypeDefinition {
       description: string;
       icon: string;
     };
-    // Add other properties as needed
   }
