@@ -12,14 +12,14 @@
   const selectedLoadout = writable<LoadoutType | null>(null);
   const selectedCharacter = writable<Character | null>(null);
 
-  function handleSelectLoadout(event: CustomEvent<{ loadout: LoadoutType; character: Character }>) {
+  function handleSelectLoadout(
+    event: CustomEvent<{ loadout: LoadoutType; character: Character }>,
+  ) {
     selectedLoadout.set(event.detail.loadout);
     selectedCharacter.set(event.detail.character);
     console.log("Selected loadout:", event.detail.loadout);
     console.log("Selected character:", event.detail.character);
   }
-
-  $: characters = Object.values($characterStore.characters);
 </script>
 
 <div class="flex h-screen">
@@ -38,14 +38,18 @@
   </div>
   <div class="w-1/2 overflow-y-auto">
     {#if $selectedLoadout && $selectedCharacter}
-      <Loadout 
-        loadout={$selectedLoadout} 
-        loadoutIndex={$characterStore.loadouts[$selectedCharacter.characterId].loadouts.indexOf($selectedLoadout)} 
-        character={$selectedCharacter} 
+      <Loadout
+        loadout={$selectedLoadout}
+        loadoutIndex={$characterStore.loadouts[
+          $selectedCharacter.characterId
+        ].loadouts.indexOf($selectedLoadout)}
+        character={$selectedCharacter}
       />
     {:else}
       <div class="flex h-full items-center justify-center">
-        <p class="text-center text-lg text-gray-500">Choose a loadout to display details</p>
+        <p class="text-center text-lg text-gray-500">
+          Choose a loadout to display details
+        </p>
       </div>
     {/if}
   </div>

@@ -1,30 +1,31 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-  import Item from './Item.svelte';
+  import { onMount } from "svelte";
+  import Item from "./Item.svelte";
   import LoadoutActions from "./LoadoutActions.svelte";
-  import { Skeleton } from '$lib/components/ui/skeleton';
-  import { inventoryStore } from '$lib/stores/inventory';
-  import { getManifestTable } from '$lib/services/manifest';
-  import { Card, CardContent } from '$lib/components/ui/card';
-  import type { Loadout, 
-                Character,
-                InventoryItem, 
-                CompleteInventoryResponse, 
-                DestinyInventoryItemDefinition 
-              } from '$lib/utils/types';
-  
+  import { Skeleton } from "$lib/components/ui/skeleton";
+  import { inventoryStore } from "$lib/stores/inventory";
+  import { getManifestTable } from "$lib/services/manifest";
+  import { Card, CardContent } from "$lib/components/ui/card";
+  import type {
+    Loadout,
+    Character,
+    InventoryItem,
+    CompleteInventoryResponse,
+    DestinyInventoryItemDefinition,
+  } from "$lib/utils/types";
+
   export let loadout: Loadout;
   export let loadoutIndex: number;
   export let character: Character;
 
   let groupedItems: Record<number, InventoryItem[]> = {};
   let loading = true;
-  let itemDefs: Record<string, any> | null = null;
+  let itemDefs: Record<string, DestinyInventoryItemDefinition> | null = null;
 
   $: if (loadout && itemDefs) {
-    console.time('groupItems');
+    console.time("groupItems");
     groupItems();
-    console.timeEnd('groupItems');
+    console.timeEnd("groupItems");
   }
 
   async function groupItems() {
@@ -36,10 +37,13 @@
 
       if (inventoryData) {
         for (const loadoutItem of loadout.items) {
-          const item = findItemInInventory(inventoryData, loadoutItem.itemInstanceId);
+          const item = findItemInInventory(
+            inventoryData,
+            loadoutItem.itemInstanceId,
+          );
           if (item) {
             const itemDef = itemDefs[item.itemHash];
-            if (itemDef && typeof itemDef.itemType === 'number') {
+            if (itemDef && typeof itemDef.itemType === "number") {
               if (!tempGroupedItems[itemDef.itemType]) {
                 tempGroupedItems[itemDef.itemType] = [];
               }
@@ -54,33 +58,42 @@
     loading = false;
   }
 
-  function findItemInInventory(inventoryData: CompleteInventoryResponse | null, itemInstanceId: string): InventoryItem | undefined {
+  function findItemInInventory(
+    inventoryData: CompleteInventoryResponse | null,
+    itemInstanceId: string,
+  ): InventoryItem | undefined {
     if (!inventoryData) return undefined;
-    
+
     // Combine all items into a single array for faster searching
     const allItems = [
       ...inventoryData.profileInventory.items,
-      ...Object.values(inventoryData.characterInventories).flatMap(inv => inv.items),
-      ...Object.values(inventoryData.characterEquipment).flatMap(eq => eq.items)
+      ...Object.values(inventoryData.characterInventories).flatMap(
+        (inv) => inv.items,
+      ),
+      ...Object.values(inventoryData.characterEquipment).flatMap(
+        (eq) => eq.items,
+      ),
     ];
 
-    return allItems.find(i => i.itemInstanceId === itemInstanceId);
+    return allItems.find((i) => i.itemInstanceId === itemInstanceId);
   }
 
   const itemTypeNames: Record<number, string> = {
-    16: 'Subclass',
-    3: 'Weapons',
-    2: 'Armor',
+    16: "Subclass",
+    3: "Weapons",
+    2: "Armor",
   };
 
   function getItemTypeName(itemType: number): string {
-    return itemTypeNames[itemType] || 'Other';
+    return itemTypeNames[itemType] || "Other";
   }
 
   onMount(async () => {
-    console.time('fetchManifest');
-    itemDefs = await getManifestTable<DestinyInventoryItemDefinition>('DestinyInventoryItemDefinition');
-    console.timeEnd('fetchManifest');
+    console.time("fetchManifest");
+    itemDefs = await getManifestTable<DestinyInventoryItemDefinition>(
+      "DestinyInventoryItemDefinition",
+    );
+    console.timeEnd("fetchManifest");
   });
 </script>
 
@@ -99,7 +112,9 @@
     {#each Object.entries(groupedItems) as [itemType, items] (itemType)}
       <Card class="mb-4">
         <CardContent>
-          <h3 class="mb-2 text-lg font-semibold">{getItemTypeName(parseInt(itemType))}</h3>
+          <h3 class="mb-2 text-lg font-semibold">
+            {getItemTypeName(parseInt(itemType))}
+          </h3>
           <div class="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3">
             {#each items as item (item.itemInstanceId)}
               <Item {item} />
@@ -110,6 +125,6 @@
     {/each}
   </div>
   <div class="p-4">
-  <LoadoutActions {loadout} {loadoutIndex} {character} />
-</div>
+    <LoadoutActions {loadout} {loadoutIndex} {character} />
+  </div>
 {/if}
