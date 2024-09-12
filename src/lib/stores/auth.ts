@@ -42,7 +42,18 @@ function createUserStore() {
       localStorage.setItem('userData', JSON.stringify(userData));
       set(userData);
     },
-    getUser: () => get({ subscribe }) 
+    getUser: () => get({ subscribe }),
+    refreshToken: async () => {
+      const response = await fetch('/api/auth/refresh', { method: 'POST', credentials: 'include' });
+      if (response.ok) {
+        // Token was refreshed successfully
+        return true;
+      } else {
+        // Token refresh failed, clear user data
+        userStore.clearUser();
+        return false;
+      }
+    }
   };
 }
 
@@ -52,7 +63,7 @@ async function validateToken() {
   try {
     const response = await fetch('/api/auth/validate', {
       method: 'GET',
-      credentials: 'include', // This is important to include cookies
+      credentials: 'include',
     });
     return response.ok;
   } catch (error) {
