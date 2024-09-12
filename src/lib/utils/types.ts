@@ -353,14 +353,17 @@ export interface DestinyStatDefinition {
 
 export interface DestinyLoadoutColorDefinition {
     colorImagePath: string;
+    hash: number;
   }
   
 export interface DestinyLoadoutIconDefinition {
     iconImagePath: string;
+    hash: number;
   }
   
 export interface DestinyLoadoutNameDefinition {
     name: string;
+    hash: number;
   }
   
 export interface DestinyInventoryItemDefinition {

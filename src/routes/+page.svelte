@@ -25,7 +25,7 @@
 <div class="flex h-screen">
   <div class="w-1/2 overflow-y-auto">
     {#if charactersLoaded && loadoutsLoaded}
-      <CharacterLoadouts on:selectLoadout={handleSelectLoadout} />
+      <CharacterLoadouts on:selectLoadout={handleSelectLoadout} selectedLoadout={$selectedLoadout} />
     {:else if $characterStore.lastUpdated === 0}
       <div class="space-y-2">
         <Skeleton class="h-12 w-full" />

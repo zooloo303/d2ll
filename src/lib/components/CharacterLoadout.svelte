@@ -1,7 +1,7 @@
 <script lang="ts">
   import { createEventDispatcher } from "svelte";
   import { Badge } from "$lib/components/ui/badge";
-  import { BUNGIE_BASE_URL } from "$lib/utils/constants";
+  import type { Character } from "$lib/utils/types";
   import { Skeleton } from "$lib/components/ui/skeleton";
   import { characterStore } from "$lib/stores/characters";
   import { getManifestTable } from "$lib/services/manifest";
@@ -13,7 +13,11 @@
                 DestinyLoadoutIconDefinition,
                 DestinyLoadoutNameDefinition 
               } from "$lib/utils/types";
-  import type { Character } from "$lib/utils/types";
+  import { BUNGIE_BASE_URL, BUNGIE_ITEM_PLACEHOLDER } from "$lib/utils/constants";
+
+  export let selectedLoadout: Loadout | null = null;
+
+  const MAX_LOADOUTS = 12;
 
   const dispatch = createEventDispatcher<{
     selectLoadout: { loadout: Loadout; character: Character };
@@ -21,6 +25,14 @@
 
   $: characters = $characterStore.characters;
   $: loadouts = $characterStore.loadouts;
+
+  function isInitialLoadout(loadout: Loadout): boolean {
+    return (
+      loadout.colorHash === BUNGIE_ITEM_PLACEHOLDER &&
+      loadout.iconHash === BUNGIE_ITEM_PLACEHOLDER &&
+      loadout.nameHash === BUNGIE_ITEM_PLACEHOLDER
+    );
+  }
 
   function getClassName(classType: number): string {
     switch (classType) {
@@ -117,29 +129,43 @@
             <div class="p-4">
               <h3 class="mb-2 text-lg font-semibold">Loadouts</h3>
               <div
-                class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
+                class="grid grid-cols-3 gap-4 sm:grid-cols-4 md:grid-cols-6"
               >
-                {#each loadouts[characterId]?.loadouts || [] as loadout}
-                  {#await getLoadoutDetails(loadout) then details}
-                    {#if details.color && details.icon && details.name}
-                      <button
-                        class="flex flex-col items-center"
-                        on:click={() => selectLoadout(loadout, character)}
-                      >
+                {#each Array(MAX_LOADOUTS) as _, index}
+                  {#if loadouts[characterId]?.loadouts[index]}
+                    {#await getLoadoutDetails(loadouts[characterId].loadouts[index]) then details}
+                      {#if isInitialLoadout(loadouts[characterId].loadouts[index])}
                         <div
-                          class="mb-2 flex h-12 w-12 items-center justify-center rounded-md bg-cover bg-center"
-                          style="background-image: url('{details.color}');"
+                          class="flex flex-col items-center justify-center h-20 w-20 border-2 border-dashed border-gray-300 rounded-md"
                         >
-                          <img
-                            src={details.icon}
-                            alt="Loadout Icon"
-                            class="h-10 w-10"
-                          />
+                          <span class="text-sm text-gray-500">Empty</span>
                         </div>
-                        <span class="text-center text-sm">{details.name}</span>
-                      </button>
-                    {/if}
-                  {/await}
+                      {:else if details.color && details.icon && details.name}
+                        <button
+                          class="flex flex-col items-center p-2 rounded-md transition-all duration-200 {selectedLoadout === loadouts[characterId].loadouts[index] ? 'bg-primary/10 ring-2 ring-primary' : 'hover:bg-secondary'}"
+                          on:click={() => selectLoadout(loadouts[characterId].loadouts[index], character)}
+                        >
+                          <div
+                            class="mb-2 flex h-12 w-12 items-center justify-center rounded-md bg-cover bg-center"
+                            style="background-image: url('{details.color}');"
+                          >
+                            <img
+                              src={details.icon}
+                              alt="Loadout Icon"
+                              class="h-10 w-10"
+                            />
+                          </div>
+                          <span class="text-center text-sm">{details.name}</span>
+                        </button>
+                      {/if}
+                    {/await}
+                  {:else}
+                    <div
+                      class="flex flex-col items-center justify-center h-20 w-20 border-2 border-dashed border-gray-300 rounded-md"
+                    >
+                      <span class="text-sm text-gray-500">Empty</span>
+                    </div>
+                  {/if}
                 {/each}
               </div>
             </div>
