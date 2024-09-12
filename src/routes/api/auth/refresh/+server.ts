@@ -6,6 +6,7 @@ export const POST: RequestHandler = async ({ cookies }) => {
   const refreshToken = cookies.get('refresh_token');
 
   if (!refreshToken) {
+    console.log('No refresh token found');
     return new Response(JSON.stringify({ error: 'No refresh token found' }), { status: 401 });
   }
 
@@ -48,6 +49,7 @@ export const POST: RequestHandler = async ({ cookies }) => {
       maxAge: 30 * 24 * 60 * 60 // 30 days
     });
 
+    console.log('Token refreshed successfully');
     return new Response(JSON.stringify({ success: true }), { status: 200 });
   } catch (error) {
     console.error('Error refreshing token:', error);

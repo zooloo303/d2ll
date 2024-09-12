@@ -11,6 +11,7 @@
           bungieNetUser: data.body.bungieNetUser,
           destinyMemberships: data.body.destinyMemberships
         });
+        userStore.startTokenValidation(); // Start token validation
         goto('/'); // Redirect to home page after successful login
       }
     });

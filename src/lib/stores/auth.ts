@@ -12,6 +12,8 @@ function createUserStore() {
     destinyMemberships: [],
   });
 
+  let tokenValidationInterval: NodeJS.Timeout;
+
   return {
     subscribe,
     clearUser: () => {
@@ -44,14 +46,31 @@ function createUserStore() {
     },
     getUser: () => get({ subscribe }),
     refreshToken: async () => {
+      console.log('Attempting to refresh token');
       const response = await fetch('/api/auth/refresh', { method: 'POST', credentials: 'include' });
       if (response.ok) {
-        // Token was refreshed successfully
+        console.log('Token refreshed successfully');
         return true;
       } else {
-        // Token refresh failed, clear user data
+        console.log('Token refresh failed', await response.text());
         userStore.clearUser();
         return false;
+      }
+    },
+    startTokenValidation: () => {
+      // Check token validity every 5 minutes
+      tokenValidationInterval = setInterval(async () => {
+        console.log('Validating token');
+        const isValid = await validateToken();
+        if (!isValid) {
+          console.log('Token invalid, attempting refresh');
+          await userStore.refreshToken();
+        }
+      }, 5 * 60 * 1000);
+    },
+    stopTokenValidation: () => {
+      if (tokenValidationInterval) {
+        clearInterval(tokenValidationInterval);
       }
     }
   };
@@ -65,6 +84,10 @@ async function validateToken() {
       method: 'GET',
       credentials: 'include',
     });
+    if (response.status === 401) {
+      // Token is invalid, attempt to refresh
+      return await userStore.refreshToken();
+    }
     return response.ok;
   } catch (error) {
     console.error('Error validating token:', error);

@@ -24,6 +24,7 @@
     const response = await fetch("/api/auth/logout", { method: "POST" });
     if (response.ok) {
       userStore.clearUser();
+      userStore.stopTokenValidation(); // Stop token validation
       window.location.href = "/";
     }
   }
@@ -32,16 +33,26 @@
     if (refreshing || !$userStore.destinyMemberships.length) return;
 
     refreshing = true;
-    const membership = $userStore.destinyMemberships[0];
-    await characterStore.loadCharacterData(
-      membership.membershipType,
-      membership.membershipId,
-    );
-    await inventoryStore.loadInventoryData(
-      membership.membershipType,
-      membership.membershipId,
-    );
-    refreshing = false;
+    try {
+      const membership = $userStore.destinyMemberships[0];
+      await characterStore.loadCharacterData(
+        membership.membershipType,
+        membership.membershipId,
+      );
+      await inventoryStore.loadInventoryData(
+        membership.membershipType,
+        membership.membershipId,
+      );
+    } catch (error) {
+      console.error('Error refreshing data:', error);
+      // Attempt to refresh the token and try again
+      const refreshed = await userStore.refreshToken();
+      if (refreshed) {
+        await refreshData();
+      }
+    } finally {
+      refreshing = false;
+    }
   }
 
   let refreshInterval: ReturnType<typeof setInterval>;
