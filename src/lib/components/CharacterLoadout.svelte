@@ -27,6 +27,9 @@
   export let selectedLoadout: Loadout | null = null;
 
   const MAX_LOADOUTS = 12;
+  const DEFAULT_COLOR_HASH = 1677044030; // Default color
+  const DEFAULT_ICON_HASH = 797343696; // Default icon
+  const DEFAULT_NAME_HASH = 752612103; // Default name
 
   const dispatch = createEventDispatcher<{
     selectLoadout: { loadout: Loadout; character: Character };
@@ -109,7 +112,10 @@
         index,
         character.characterId,
         character.membershipType,
-      );
+        DEFAULT_COLOR_HASH,
+        DEFAULT_ICON_HASH,
+        DEFAULT_NAME_HASH,
+      );     
       toast.success("New loadout created successfully");
 
       // Refresh character data to update the UI

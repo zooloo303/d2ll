@@ -45,11 +45,9 @@
   <CardHeader><h3 class="mb-2 text-lg font-semibold">Actions</h3></CardHeader>
   <CardContent>
     <Button variant="ghost" on:click={handleEquipLoadout}>Equip Loadout</Button>
-    <Button variant="ghost" on:click={handleSnapshotLoadout}
-      >Snapshot Loadout</Button
-    >
-    <Button variant="ghost" on:click={handleEClearLoadout}>Clear Loadout</Button>
+    <Button variant="ghost" on:click={handleSnapshotLoadout}>Snapshot Loadout</Button>
     <Button variant="ghost" on:click={() => identifierDrawerOpen = true}>Update Identifiers</Button>
+    <Button variant="ghost" on:click={handleEClearLoadout}>Clear Loadout</Button>
     <!-- Add other action buttons here -->
   </CardContent>
   <LoadoutIdentifierDrawer 

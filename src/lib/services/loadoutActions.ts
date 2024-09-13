@@ -134,6 +134,6 @@ export async function clearLoadout(
       toast.success("Loadout identifiers updated successfully");
     } catch (error) {
       console.error("Error updating loadout identifiers:", error);
-      toast.error("Failed to snapshot loadout");
+      toast.error("Failed to update loadout identifiers");
     }
   }
