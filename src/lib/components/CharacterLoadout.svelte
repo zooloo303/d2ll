@@ -115,7 +115,7 @@
         DEFAULT_COLOR_HASH,
         DEFAULT_ICON_HASH,
         DEFAULT_NAME_HASH,
-      );     
+      );
       toast.success("New loadout created successfully");
 
       // Refresh character data to update the UI
@@ -145,28 +145,28 @@
       {#each Object.entries(characters) as [characterId, character]}
         <Card>
           <CardContent>
-            <div class="flex flex-row items-center p-4">
-              <Avatar class="mr-4 h-16 w-16">
-                <AvatarImage
-                  src={`${BUNGIE_BASE_URL}${character.emblemPath}`}
-                  alt="Character Emblem"
-                />
-              </Avatar>
-              <div>
-                <Badge>{getClassName(character.classType)}</Badge>
-              </div>
-            </div>
-            <div class="flex flex-row items-center">
-              <div class="p-4">
-                <div class="grid grid-cols-3 gap-2">
+            <div class="flex flex-col">
+              <div class="flex flex-col sm:flex-row justify-between p-4">
+                <div class="flex items-center mb-2 sm:mb-0">
+                  <Avatar class="mr-4 h-16 w-16">
+                    <AvatarImage
+                      src={`${BUNGIE_BASE_URL}${character.emblemPath}`}
+                      alt="Character Emblem"
+                    />
+                  </Avatar>
+                  <div>
+                    <Badge>{getClassName(character.classType)}</Badge>
+                  </div>
+                </div>
+                <div class="grid grid-cols-4 gap-2 sm:grid-cols-7">
                   {#each statOrder as statHash}
                     {#await getStatIcon(statHash) then icon}
                       <Badge
                         variant="secondary"
-                        class="flex items-center justify-between"
+                        class="flex flex-col items-center justify-center px-2 py-1"
                       >
-                        <img src={icon} alt="Stat Icon" class="h-4 w-4" />
-                        <span class="ml-2">{character.stats[statHash]}</span>
+                        <img src={icon} alt="Stat Icon" class="h-4 w-4 mb-1" />
+                        <span class="text-xs">{character.stats[statHash]}</span>
                       </Badge>
                     {/await}
                   {/each}
@@ -192,8 +192,8 @@
                           <button
                             class="flex flex-col items-center p-2 rounded-md transition-all duration-200 {selectedLoadout ===
                             loadouts[characterId].loadouts[index]
-                              ? 'bg-primary/10 ring-2 ring-primary'
-                              : 'hover:bg-secondary'}"
+                              ? 'bg-primary/5 shadow-inner shadow-primary/20'
+                              : 'hover:bg-secondary/10'}"
                             on:click={() =>
                               selectLoadout(
                                 loadouts[characterId].loadouts[index],

@@ -1,22 +1,30 @@
-import { userStore } from '$lib/stores/auth';
-import type { Character, CharacterLoadouts, CompleteInventoryResponse } from "$lib/utils/types";
+import { userStore } from "$lib/stores/auth";
+import type {
+  Character,
+  CharacterLoadouts,
+  CompleteInventoryResponse,
+} from "$lib/utils/types";
 
-async function authenticatedFetch(url: string, options: RequestInit = {}, retryCount = 0) {
-  console.log('Attempting authenticated fetch:', url);
+async function authenticatedFetch(
+  url: string,
+  options: RequestInit = {},
+  retryCount = 0,
+) {
+  console.log("Attempting authenticated fetch:", url);
   let response = await fetch(url, {
     ...options,
-    credentials: 'include',
+    credentials: "include",
   });
 
-  if (response.status === 401 && retryCount < 1) {
-    console.log('Received 401, attempting to refresh token');
+  if (response.status === 401 && retryCount < 3) {
+    console.log("Received 401, attempting to refresh token");
     const refreshed = await userStore.refreshToken();
     if (refreshed) {
-      console.log('Token refreshed successfully, retrying original request');
+      console.log("Token refreshed successfully, retrying original request");
       return authenticatedFetch(url, options, retryCount + 1);
     } else {
-      console.log('Token refresh failed');
-      throw new Error('Authentication failed');
+      console.log("Token refresh failed");
+      throw new Error("Authentication failed");
     }
   }
 
