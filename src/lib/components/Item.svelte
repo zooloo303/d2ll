@@ -10,7 +10,7 @@
     ItemStats,
     DestinyStatDefinition,
     DestinyDamageTypeDefinition,
-    DestinyInventoryItemDefinition
+    DestinyInventoryItemDefinition,
   } from "$lib/utils/types";
   import { lazyLoad } from "$lib/utils/helpers";
   import ItemHoverCard from "./ItemHoverCard.svelte";
@@ -19,14 +19,17 @@
 
   let itemDefinition: DestinyInventoryItemDefinition | null = null;
   let overrideItemDefinition: DestinyInventoryItemDefinition | null = null;
-  let damageTypeDefinition: any | null = null;
+  let damageTypeDefinition: DestinyDamageTypeDefinition | null = null;
   let itemInstance: ItemInstance | null = null;
   let itemStats: ItemStats | null = null;
-  let statDefinitions: { [statHash: string]: DestinyStatDefinition } | null = null;
+  let statDefinitions: { [statHash: string]: DestinyStatDefinition } | null =
+    null;
   let loaded = false;
 
   onMount(async () => {
-    const itemDefs = await getManifestTable<DestinyInventoryItemDefinition>("DestinyInventoryItemDefinition");
+    const itemDefs = await getManifestTable<DestinyInventoryItemDefinition>(
+      "DestinyInventoryItemDefinition",
+    );
     if (itemDefs) {
       itemDefinition = itemDefs[item.itemHash];
       if (item.overrideStyleItemHash) {
@@ -56,7 +59,9 @@
     }
 
     // Fetch stat definitions
-    const statDefs = await getManifestTable<DestinyStatDefinition>("DestinyStatDefinition");
+    const statDefs = await getManifestTable<DestinyStatDefinition>(
+      "DestinyStatDefinition",
+    );
     if (statDefs) {
       statDefinitions = statDefs;
     }
@@ -68,16 +73,18 @@
   $: iconPath =
     overrideItemDefinition?.displayProperties.icon ||
     itemDefinition?.displayProperties.icon;
-  $: socketData = $inventoryStore?.itemComponents.sockets.data[item.itemInstanceId]?.sockets;
+  $: socketData =
+    $inventoryStore?.itemComponents.sockets.data[item.itemInstanceId]?.sockets;
 </script>
 
 {#if loaded && itemDefinition}
-  <ItemHoverCard 
-    {itemDefinition} 
-    {itemInstance} 
-    {itemStats} 
-    {overrideItemDefinition} 
+  <ItemHoverCard
+    {itemDefinition}
+    {itemInstance}
+    {itemStats}
+    {overrideItemDefinition}
     itemSockets={socketData}
+    itemInstanceId={item.itemInstanceId}
   >
     <div class="flex items-center rounded-md bg-secondary p-2">
       <img

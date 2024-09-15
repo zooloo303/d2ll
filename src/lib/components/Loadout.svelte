@@ -6,6 +6,7 @@
   import { inventoryStore } from "$lib/stores/inventory";
   import { getManifestTable } from "$lib/services/manifest";
   import { Card, CardContent } from "$lib/components/ui/card";
+  import { findItemInInventory, groupItemsBy } from "$lib/utils/helpers";
   import type {
     Loadout,
     Character,
@@ -30,52 +31,33 @@
 
   async function groupItems() {
     loading = true;
-    const tempGroupedItems: Record<number, InventoryItem[]> = {};
+    let tempGroupedItems: Record<number, InventoryItem[]> = {};
 
     if (itemDefs) {
       const inventoryData: CompleteInventoryResponse | null = $inventoryStore;
 
       if (inventoryData) {
-        for (const loadoutItem of loadout.items) {
-          const item = findItemInInventory(
-            inventoryData,
-            loadoutItem.itemInstanceId,
-          );
-          if (item) {
-            const itemDef = itemDefs[item.itemHash];
-            if (itemDef && typeof itemDef.itemType === "number") {
-              if (!tempGroupedItems[itemDef.itemType]) {
-                tempGroupedItems[itemDef.itemType] = [];
-              }
-              tempGroupedItems[itemDef.itemType].push(item);
-            }
-          }
-        }
+        const loadoutItems = loadout.items
+          .map((loadoutItem) => {
+            const foundItemData = findItemInInventory(
+              inventoryData,
+              loadoutItem.itemInstanceId,
+            );
+            return foundItemData ? foundItemData.item : undefined;
+          })
+          .filter((item): item is InventoryItem => item !== undefined);
+
+        tempGroupedItems = groupItemsBy(loadoutItems, (item) => {
+          const itemDef = itemDefs[item.itemHash];
+          return itemDef && typeof itemDef.itemType === "number"
+            ? itemDef.itemType
+            : -1;
+        });
       }
     }
 
     groupedItems = tempGroupedItems;
     loading = false;
-  }
-
-  function findItemInInventory(
-    inventoryData: CompleteInventoryResponse | null,
-    itemInstanceId: string,
-  ): InventoryItem | undefined {
-    if (!inventoryData) return undefined;
-
-    // Combine all items into a single array for faster searching
-    const allItems = [
-      ...inventoryData.profileInventory.items,
-      ...Object.values(inventoryData.characterInventories).flatMap(
-        (inv) => inv.items,
-      ),
-      ...Object.values(inventoryData.characterEquipment).flatMap(
-        (eq) => eq.items,
-      ),
-    ];
-
-    return allItems.find((i) => i.itemInstanceId === itemInstanceId);
   }
 
   const itemTypeNames: Record<number, string> = {

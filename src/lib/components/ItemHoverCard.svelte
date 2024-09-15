@@ -4,6 +4,7 @@
     HoverCardContent,
     HoverCardTrigger,
   } from "$lib/components/ui/hover-card";
+  import ItemActions from "./ItemActions.svelte";
   import { Progress } from "$lib/components/ui/progress";
   import { getManifestTable } from "$lib/services/manifest";
   import type {
@@ -11,25 +12,34 @@
     ItemSocket,
     ItemStats,
     DestinyStatDefinition,
-    DestinyInventoryItemDefinition
+    DestinyInventoryItemDefinition,
   } from "$lib/utils/types";
   import { BUNGIE_BASE_URL } from "$lib/utils/constants";
-  import { Tooltip, TooltipContent, TooltipTrigger } from "$lib/components/ui/tooltip";
-  import { onMount } from 'svelte';
+  import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+  } from "$lib/components/ui/tooltip";
+  import { onMount } from "svelte";
 
   export let itemDefinition: DestinyInventoryItemDefinition;
   export let itemInstance: ItemInstance | null = null;
   export let itemStats: ItemStats | null = null;
-  export let overrideItemDefinition: DestinyInventoryItemDefinition | null = null;
+  export let overrideItemDefinition: DestinyInventoryItemDefinition | null =
+    null;
   export let itemSockets: ItemSocket[] | null = null;
+  export let itemInstanceId: string;
 
   let statDefinitions: Record<string, DestinyStatDefinition> | null = null;
-  let socketDefinitions: Record<string, DestinyInventoryItemDefinition> | null = null;
+  let socketDefinitions: Record<string, DestinyInventoryItemDefinition> | null =
+    null;
 
   async function loadDefinitions() {
     [statDefinitions, socketDefinitions] = await Promise.all([
       getManifestTable<DestinyStatDefinition>("DestinyStatDefinition"),
-      getManifestTable<DestinyInventoryItemDefinition>("DestinyInventoryItemDefinition")
+      getManifestTable<DestinyInventoryItemDefinition>(
+        "DestinyInventoryItemDefinition",
+      ),
     ]);
   }
 
@@ -51,7 +61,7 @@
   $: displayedDefinition = overrideItemDefinition || itemDefinition;
   $: iconPath = displayedDefinition.displayProperties.icon;
   $: screenshotPath = displayedDefinition.screenshot;
-  $: visibleSockets = itemSockets?.filter(socket => socket.isVisible) ?? [];
+  $: visibleSockets = itemSockets?.filter((socket) => socket.isVisible) ?? [];
 </script>
 
 <HoverCard>
@@ -61,11 +71,14 @@
   <HoverCardContent class="w-80">
     <div class="flex flex-col space-y-2">
       <h3 class="text-lg font-bold">{itemDefinition.displayProperties.name}</h3>
-      <img
-        src={`${BUNGIE_BASE_URL}${iconPath}`}
-        alt={itemDefinition.displayProperties.name}
-        class="h-16 w-16"
-      />
+      <div class="flex flex-row items-center justify-between">
+        <img
+          src={`${BUNGIE_BASE_URL}${iconPath}`}
+          alt={itemDefinition.displayProperties.name}
+          class="h-16 w-16"
+        />
+        <ItemActions {itemInstanceId} {itemInstance} />
+      </div>
       <p class="text-sm">{itemDefinition.itemTypeDisplayName}</p>
       <p class="text-sm">{itemDefinition.displayProperties.description}</p>
       {#if itemInstance?.primaryStat}
@@ -88,16 +101,25 @@
                   <TooltipTrigger>
                     <img
                       src={`${BUNGIE_BASE_URL}${socketDefinitions[socket.plugHash].displayProperties.icon}`}
-                      alt={socketDefinitions[socket.plugHash].displayProperties.name}
+                      alt={socketDefinitions[socket.plugHash].displayProperties
+                        .name}
                       class="w-6 h-6"
                       class:opacity-50={!socket.isEnabled}
                     />
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>{socketDefinitions[socket.plugHash].displayProperties.name}</p>
-                    <p>{socketDefinitions[socket.plugHash].displayProperties.description}</p>
+                    <p>
+                      {socketDefinitions[socket.plugHash].displayProperties
+                        .name}
+                    </p>
+                    <p>
+                      {socketDefinitions[socket.plugHash].displayProperties
+                        .description}
+                    </p>
                     {#if !socket.isEnabled}
-                      <p class="text-yellow-500">This socket is currently disabled.</p>
+                      <p class="text-yellow-500">
+                        This socket is currently disabled.
+                      </p>
                     {/if}
                   </TooltipContent>
                 </Tooltip>
@@ -112,7 +134,9 @@
           {#each Object.entries(combinedStats) as [statHash, stat]}
             {#if statDefinitions[statHash]}
               <div class="flex items-center space-x-2 mb-1">
-                <span class="text-xs w-24">{statDefinitions[statHash].displayProperties.name}:</span>
+                <span class="text-xs w-24"
+                  >{statDefinitions[statHash].displayProperties.name}:</span
+                >
                 <Progress
                   value={stat.value}
                   max={stat.displayMaximum}
