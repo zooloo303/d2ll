@@ -4,6 +4,7 @@
   import { characterStore } from "$lib/stores/characters";
   import CharacterLoadouts from "$lib/components/CharacterLoadouts.svelte";
   import Loadout from "$lib/components/Loadout.svelte";
+  import ArmorOptimizer from "$lib/components/ArmorOptimizer.svelte";
   import { Skeleton } from "$lib/components/ui/skeleton";
   import { writable } from "svelte/store";
   import type { Character, Loadout as LoadoutType } from "$lib/utils/types";
@@ -49,6 +50,7 @@
           ].loadouts.indexOf($selectedLoadout)}
           character={$selectedCharacter}
         />
+        <ArmorOptimizer />
       {:else}
         <div class="flex h-full items-center justify-center">
           <p class="text-center text-lg text-gray-500">
