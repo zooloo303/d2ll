@@ -378,6 +378,7 @@ export interface DestinyInventoryItemDefinition {
 	stats: ItemStats;
 	inventory: {
 		bucketTypeHash: number;
+		tierType: number;
 	};
 	defaultDamageTypeHash?: number;
 	flavorText?: string;

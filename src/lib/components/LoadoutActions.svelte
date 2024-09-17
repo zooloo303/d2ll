@@ -42,7 +42,7 @@
 </script>
 
 <Card>
-  <CardHeader><h3 class="mb-2 text-lg font-semibold">Actions</h3></CardHeader>
+  <CardHeader><h3 class="text-lg font-semibold">Actions</h3></CardHeader>
   <CardContent>
     <Button variant="ghost" on:click={handleEquipLoadout}>Equip Loadout</Button>
     <Button variant="ghost" on:click={handleSnapshotLoadout}>Snapshot Loadout</Button>

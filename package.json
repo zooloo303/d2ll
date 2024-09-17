@@ -42,8 +42,8 @@
 		"cmdk-sv": "^0.0.18",
 		"lucide-svelte": "^0.438.0",
 		"mode-watcher": "^0.4.1",
+		"svelte-dnd-action": "^0.9.50",
 		"svelte-sonner": "^0.3.27",
-		"swapy": "^0.2.1",
 		"tailwind-merge": "^2.5.2",
 		"tailwind-variants": "^0.2.1",
 		"vaul-svelte": "^0.3.2"

@@ -1,7 +1,10 @@
+import { inventoryStore } from "$lib/stores/inventory";
 import type {
-  CompleteInventoryResponse,
+  Loadout,
   InventoryItem,
-} from "$lib/utils/types";
+  CompleteInventoryResponse,
+  DestinyInventoryItemDefinition,
+  } from "$lib/utils/types";
 
 export function lazyLoad(image: HTMLImageElement) {
   const observer = new IntersectionObserver((entries) => {

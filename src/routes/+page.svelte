@@ -14,12 +14,14 @@
 
   const selectedLoadout = writable<LoadoutType | null>(null);
   const selectedCharacter = writable<Character | null>(null);
+  let selectedCharacterId: string | null = null;
 
   function handleSelectLoadout(
     event: CustomEvent<{ loadout: LoadoutType; character: Character }>,
   ) {
     selectedLoadout.set(event.detail.loadout);
     selectedCharacter.set(event.detail.character);
+    selectedCharacterId = event.detail.character.characterId;
   }
 </script>
 
@@ -42,7 +44,7 @@
       {/if}
     </div>
     <div class="w-1/2 overflow-y-auto">
-      {#if $selectedLoadout && $selectedCharacter}
+      {#if $selectedLoadout && $selectedCharacter && selectedCharacterId}
         <Loadout
           loadout={$selectedLoadout}
           loadoutIndex={$characterStore.loadouts[
@@ -50,7 +52,7 @@
           ].loadouts.indexOf($selectedLoadout)}
           character={$selectedCharacter}
         />
-        <ArmorOptimizer />
+        <ArmorOptimizer characterId={selectedCharacterId} loadout={$selectedLoadout} />
       {:else}
         <div class="flex h-full items-center justify-center">
           <p class="text-center text-lg text-gray-500">
