@@ -1,15 +1,14 @@
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
-
 import fs from 'node:fs';
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
 	plugins: [sveltekit()],
-	server: {
+	server: mode === 'development' ? {
 		https: {
 			key: fs.readFileSync('localhost-key.pem'),
 			cert: fs.readFileSync('localhost.pem')
 		},
 		proxy: {}
-	}
-});
+	} : {}
+}));
