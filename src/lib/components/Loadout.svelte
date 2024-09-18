@@ -106,7 +106,7 @@
       </Card>
     {/each}
   </div>
-  <div class="p-4">
+  <div class="pl-4 pr-4">
     <LoadoutActions {loadout} {loadoutIndex} {character} />
   </div>
 {/if}
