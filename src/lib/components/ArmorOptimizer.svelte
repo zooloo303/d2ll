@@ -161,10 +161,11 @@
             />
           </Avatar>
           <Badge>{getClassName(selectedCharacter.classType)}</Badge>
+        </div>
           {#if exoticArmorItem}
             <Item item={exoticArmorItem} />
           {/if}
-          </div>
+          
 
           <StatPriorityDragDrop
             onPrioritiesChange={(priorities) => (statPriorities = priorities)}
