@@ -41,7 +41,7 @@
     updateSelectedCharacter();
   }
 
-  $: if (loadout && armorDefinitions) {
+  $: if (loadout && $manifestStore.tables.DestinyInventoryItemDefinition) {
     loadExoticArmor();
   }
 
@@ -68,17 +68,16 @@
       );
     }
 
-    armorDefinitions =
-      await manifestStore.getTable<DestinyInventoryItemDefinition>(
-        "DestinyInventoryItemDefinition",
-      );
+    if (!$manifestStore.tables.DestinyInventoryItemDefinition) {
+      await manifestStore.getTable('DestinyInventoryItemDefinition');
+    }
     
     await updateSelectedCharacter();
   });
 
   async function loadExoticArmor() {
     const inventoryData = $inventoryStore;
-    if (!inventoryData || !armorDefinitions) return;
+    if (!inventoryData || !$manifestStore.tables.DestinyInventoryItemDefinition) return;
 
     exoticArmorItem = null;
     selectedExotic = null;
@@ -86,7 +85,7 @@
     for (const item of loadout.items) {
       const inventoryItem = findItemInInventory(inventoryData, item.itemInstanceId);
       if (inventoryItem) {
-        const itemDef = armorDefinitions[inventoryItem.itemHash];
+        const itemDef = $manifestStore.tables.DestinyInventoryItemDefinition[inventoryItem.itemHash];
         if (itemDef && itemDef.inventory.tierType === 6 && itemDef.itemType === 2) {
           exoticArmorItem = inventoryItem;
           selectedExotic = item.itemInstanceId;
@@ -145,7 +144,7 @@
 </script>
 <div class="p-4">
 
-<Card class="w-full max-w-4xl mx-auto">
+<Card class="w-full mx-auto">
   <CardHeader>
     <CardTitle>Armor Optimizer</CardTitle>
   </CardHeader>

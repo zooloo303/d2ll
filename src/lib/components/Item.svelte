@@ -1,80 +1,51 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { getManifestTable } from "$lib/services/manifest";
+  import { manifestStore } from "$lib/stores/manifest";
   import { Skeleton } from "$lib/components/ui/skeleton";
   import { BUNGIE_BASE_URL } from "$lib/utils/constants";
   import { inventoryStore } from "$lib/stores/inventory";
-  import type {
-    InventoryItem,
-    ItemInstance,
-    ItemStats,
-    DestinyStatDefinition,
-    DestinyDamageTypeDefinition,
-    DestinyInventoryItemDefinition,
-  } from "$lib/utils/types";
+  import type { InventoryItem } from "$lib/utils/types";
   import { lazyLoad } from "$lib/utils/helpers";
   import ItemHoverCard from "./ItemHoverCard.svelte";
 
   export let item: InventoryItem;
 
-  let itemDefinition: DestinyInventoryItemDefinition | null = null;
-  let overrideItemDefinition: DestinyInventoryItemDefinition | null = null;
-  let damageTypeDefinition: DestinyDamageTypeDefinition | null = null;
-  let itemInstance: ItemInstance | null = null;
-  let itemStats: ItemStats | null = null;
-  let statDefinitions: { [statHash: string]: DestinyStatDefinition } | null =
-    null;
   let loaded = false;
+  let iconPath: string;
 
-  onMount(async () => {
-    const itemDefs = await getManifestTable<DestinyInventoryItemDefinition>(
-      "DestinyInventoryItemDefinition",
-    );
-    if (itemDefs) {
-      itemDefinition = itemDefs[item.itemHash];
-      if (item.overrideStyleItemHash) {
-        overrideItemDefinition = itemDefs[item.overrideStyleItemHash];
-      }
-    }
+  $: itemDefinition = $manifestStore.tables.DestinyInventoryItemDefinition?.[item.itemHash];
+  $: overrideItemDefinition = item.overrideStyleItemHash ? 
+    $manifestStore.tables.DestinyInventoryItemDefinition?.[item.overrideStyleItemHash] : null;
+  $: damageTypeDefinition = itemDefinition?.defaultDamageTypeHash ? 
+    $manifestStore.tables.DestinyDamageTypeDefinition?.[itemDefinition.defaultDamageTypeHash as keyof typeof $manifestStore.tables.DestinyDamageTypeDefinition] : null;
 
-    if (itemDefinition?.defaultDamageTypeHash) {
-      const damageDefs = await getManifestTable<DestinyDamageTypeDefinition>(
-        "DestinyDamageTypeDefinition",
-      );
-      if (damageDefs) {
-        damageTypeDefinition = damageDefs[itemDefinition.defaultDamageTypeHash];
-      }
-    }
-
-    const inventoryData = $inventoryStore;
-    if (
-      inventoryData &&
-      inventoryData.itemComponents.instances.data[item.itemInstanceId] &&
-      inventoryData.itemComponents.stats.data[item.itemInstanceId]
-    ) {
-      itemInstance =
-        inventoryData.itemComponents.instances.data[item.itemInstanceId];
-      itemStats =
-        inventoryData.itemComponents.stats.data[item.itemInstanceId].stats;
-    }
-
-    // Fetch stat definitions
-    const statDefs = await getManifestTable<DestinyStatDefinition>(
-      "DestinyStatDefinition",
-    );
-    if (statDefs) {
-      statDefinitions = statDefs;
-    }
-
-    loaded = true;
-  });
+  $: itemInstance = $inventoryStore?.itemComponents.instances.data[item.itemInstanceId];
+  $: itemStats = $inventoryStore?.itemComponents.stats.data[item.itemInstanceId]?.stats;
+  $: statDefinitions = $manifestStore.tables.DestinyStatDefinition;
 
   $: powerLevel = itemInstance?.primaryStat?.value ?? "N/A";
-  $: iconPath =
-    overrideItemDefinition?.displayProperties.icon ||
-    itemDefinition?.displayProperties.icon;
-  $: socketData =
-    $inventoryStore?.itemComponents.sockets.data[item.itemInstanceId]?.sockets;
+  $: socketData = $inventoryStore?.itemComponents.sockets.data[item.itemInstanceId]?.sockets;
+
+  $: {
+    // Update iconPath whenever item, overrideItemDefinition, or itemDefinition changes
+    iconPath = overrideItemDefinition?.displayProperties.icon || itemDefinition?.displayProperties.icon;
+    // Force a re-render of the img element
+    loaded = false;
+    setTimeout(() => loaded = true, 0);
+  }
+
+  onMount(async () => {
+    if (!$manifestStore.tables.DestinyInventoryItemDefinition) {
+      await manifestStore.getTable('DestinyInventoryItemDefinition');
+    }
+    if (!$manifestStore.tables.DestinyDamageTypeDefinition) {
+      await manifestStore.getTable('DestinyDamageTypeDefinition');
+    }
+    if (!$manifestStore.tables.DestinyStatDefinition) {
+      await manifestStore.getTable('DestinyStatDefinition');
+    }
+    loaded = true;
+  });
 </script>
 
 {#if loaded && itemDefinition}
@@ -87,12 +58,14 @@
     itemInstanceId={item.itemInstanceId}
   >
     <div class="flex items-center rounded-md bg-secondary p-2">
-      <img
-        use:lazyLoad
-        data-src={`${BUNGIE_BASE_URL}${iconPath}`}
-        alt={itemDefinition.displayProperties.name}
-        class="mr-2 h-12 w-12"
-      />
+      {#key iconPath}
+        <img
+          use:lazyLoad
+          data-src={`${BUNGIE_BASE_URL}${iconPath}`}
+          alt={itemDefinition.displayProperties.name}
+          class="mr-2 h-12 w-12"
+        />
+      {/key}
       <div class="flex-grow">
         <p class="text-sm font-semibold">
           {itemDefinition.displayProperties.name}

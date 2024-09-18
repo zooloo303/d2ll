@@ -32,7 +32,7 @@
   const DEFAULT_NAME_HASH = 752612103; // Default name
 
   const dispatch = createEventDispatcher<{
-    selectLoadout: { loadout: Loadout; character: Character };
+    selectLoadout: { loadout: Loadout; character: Character; loadoutIndex: number };
   }>();
 
   $: characters = $characterStore.characters;
@@ -103,7 +103,13 @@
   }
 
   function selectLoadout(loadout: Loadout, character: Character) {
-    dispatch("selectLoadout", { loadout, character });
+    const characterLoadouts = loadouts[character.characterId]?.loadouts || [];
+    const loadoutIndex = characterLoadouts.findIndex(l => l === loadout);
+    if (loadoutIndex !== -1) {
+      dispatch("selectLoadout", { loadout, character, loadoutIndex });
+    } else {
+      console.error("Loadout not found in character loadouts");
+    }
   }
   async function addNewLoadout(characterId: string, index: number) {
     try {

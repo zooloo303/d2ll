@@ -4,15 +4,13 @@
   import LoadoutActions from "./LoadoutActions.svelte";
   import { Skeleton } from "$lib/components/ui/skeleton";
   import { inventoryStore } from "$lib/stores/inventory";
-  import { getManifestTable } from "$lib/services/manifest";
+  import { manifestStore } from "$lib/stores/manifest";
   import { Card, CardContent } from "$lib/components/ui/card";
   import { findItemInInventory, groupItemsBy } from "$lib/utils/helpers";
   import type {
     Loadout,
     Character,
     InventoryItem,
-    CompleteInventoryResponse,
-    DestinyInventoryItemDefinition,
   } from "$lib/utils/types";
 
   export let loadout: Loadout;
@@ -21,43 +19,43 @@
 
   let groupedItems: Record<number, InventoryItem[]> = {};
   let loading = true;
-  let itemDefs: Record<string, DestinyInventoryItemDefinition> | null = null;
 
-  $: if (loadout && itemDefs) {
-    console.time("groupItems");
+  $: itemDefs = $manifestStore.tables.DestinyInventoryItemDefinition;
+  $: inventoryData = $inventoryStore;
+
+  let prevLoadout: Loadout | null = null;
+
+  $: if (loadout !== prevLoadout && itemDefs && inventoryData) {
+    prevLoadout = loadout;
     groupItems();
-    console.timeEnd("groupItems");
   }
 
-  async function groupItems() {
-    loading = true;
+  function groupItems() {
+    console.time("groupItems");
     let tempGroupedItems: Record<number, InventoryItem[]> = {};
 
-    if (itemDefs) {
-      const inventoryData: CompleteInventoryResponse | null = $inventoryStore;
+    if (itemDefs && inventoryData) {
+      const loadoutItems = loadout.items
+        .map((loadoutItem) => {
+          const foundItemData = findItemInInventory(
+            inventoryData,
+            loadoutItem.itemInstanceId,
+          );
+          return foundItemData ? foundItemData.item : undefined;
+        })
+        .filter((item): item is InventoryItem => item !== undefined);
 
-      if (inventoryData) {
-        const loadoutItems = loadout.items
-          .map((loadoutItem) => {
-            const foundItemData = findItemInInventory(
-              inventoryData,
-              loadoutItem.itemInstanceId,
-            );
-            return foundItemData ? foundItemData.item : undefined;
-          })
-          .filter((item): item is InventoryItem => item !== undefined);
-
-        tempGroupedItems = groupItemsBy(loadoutItems, (item) => {
-          const itemDef = itemDefs[item.itemHash];
-          return itemDef && typeof itemDef.itemType === "number"
-            ? itemDef.itemType
-            : -1;
-        });
-      }
+      tempGroupedItems = groupItemsBy(loadoutItems, (item) => {
+        const itemDef = itemDefs[item.itemHash];
+        return itemDef && typeof itemDef.itemType === "number"
+          ? itemDef.itemType
+          : -1;
+      });
     }
 
     groupedItems = tempGroupedItems;
     loading = false;
+    console.timeEnd("groupItems");
   }
 
   const itemTypeNames: Record<number, string> = {
@@ -70,12 +68,10 @@
     return itemTypeNames[itemType] || "Other";
   }
 
-  onMount(async () => {
-    console.time("fetchManifest");
-    itemDefs = await getManifestTable<DestinyInventoryItemDefinition>(
-      "DestinyInventoryItemDefinition",
-    );
-    console.timeEnd("fetchManifest");
+  onMount(() => {
+    if (itemDefs && inventoryData) {
+      groupItems();
+    }
   });
 </script>
 

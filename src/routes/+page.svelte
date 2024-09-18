@@ -17,12 +17,15 @@
   let selectedCharacterId: string | null = null;
 
   function handleSelectLoadout(
-    event: CustomEvent<{ loadout: LoadoutType; character: Character }>,
+    event: CustomEvent<{ loadout: LoadoutType; character: Character; loadoutIndex: number }>
   ) {
     selectedLoadout.set(event.detail.loadout);
     selectedCharacter.set(event.detail.character);
     selectedCharacterId = event.detail.character.characterId;
+    selectedLoadoutIndex.set(event.detail.loadoutIndex);
   }
+
+  let selectedLoadoutIndex = writable<number | null>(null);
 </script>
 
 {#if $userStore.bungieNetUser.membershipId}
@@ -47,9 +50,7 @@
       {#if $selectedLoadout && $selectedCharacter && selectedCharacterId}
         <Loadout
           loadout={$selectedLoadout}
-          loadoutIndex={$characterStore.loadouts[
-            $selectedCharacter.characterId
-          ].loadouts.indexOf($selectedLoadout)}
+          loadoutIndex={$selectedLoadoutIndex ?? -1}
           character={$selectedCharacter}
         />
         <ArmorOptimizer characterId={selectedCharacterId} loadout={$selectedLoadout} />
