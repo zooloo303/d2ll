@@ -39,6 +39,7 @@
   let selectedCharacter: Character | null = null;
   let exoticArmorItem: InventoryItem | null = null;
   let legendaryArmor: { item: InventoryItem; instance: ItemInstance; stats: ItemStats; definition: DestinyInventoryItemDefinition }[] = [];
+  let defaultSubclass: string | null = null;
 
   $: if (characterId) {
     updateSelectedCharacter();
@@ -46,6 +47,7 @@
 
   $: if (loadout && $manifestStore.tables.DestinyInventoryItemDefinition) {
     loadExoticArmor();
+    loadDefaultSubclass();
   }
 
   async function updateSelectedCharacter() {
@@ -144,6 +146,25 @@
         return "Unknown";
     }
   }
+  function loadDefaultSubclass() {
+    let newDefaultSubclass: string | null = null;
+    for (const item of loadout.items) {
+      const inventoryItem = findItemInInventory($inventoryStore, item.itemInstanceId);
+      if (inventoryItem) {
+        const itemDef = $manifestStore.tables.DestinyInventoryItemDefinition[inventoryItem.itemHash];
+        if (itemDef && itemDef.itemType === 16) { // 16 is the itemType for subclasses
+          newDefaultSubclass = inventoryItem.itemHash.toString();
+          break;
+        }
+      }
+    }
+    defaultSubclass = newDefaultSubclass;
+    selectedSubclass = newDefaultSubclass; // Reset selected subclass when loadout changes
+  }
+
+  function handleSubclassSelect(subclassHash: string) {
+    selectedSubclass = subclassHash;
+  }
 
   $: if ($inventoryStore && $manifestStore.tables.DestinyInventoryItemDefinition && selectedCharacter) {
     legendaryArmor = getLegendaryArmorForClass(
@@ -185,7 +206,9 @@
 
           <SubclassSelector
             characterId={selectedCharacter.characterId}
-            onSelect={(subclassHash) => (selectedSubclass = subclassHash)}
+            onSelect={handleSubclassSelect}
+            defaultSubclass={defaultSubclass}
+            bind:selectedSubclass
           />
         </div>
 
