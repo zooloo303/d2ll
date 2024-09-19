@@ -180,6 +180,11 @@
     }
   }
 
+  function handleStatPrioritiesChange(priorities: string[]) {
+    statPriorities = priorities;
+    console.log("Updated stat priorities:", statPriorities);
+  }
+
   $: if ($inventoryStore && $manifestStore.tables.DestinyInventoryItemDefinition && selectedCharacter) {
     legendaryArmor = getLegendaryArmorForClass(
       $inventoryStore,
@@ -215,7 +220,7 @@
           
 
           <StatPriorityDragDrop
-            onPrioritiesChange={(priorities) => (statPriorities = priorities)}
+            onPrioritiesChange={handleStatPrioritiesChange}
           />
 
           <SubclassSelector

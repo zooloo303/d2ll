@@ -18,7 +18,7 @@
       hash: string;
   }
 
-  // Initialize items array
+  // Initialize items array with default priorities
   let items: StatItem[] = [
       { id: "1", hash: "2996146975" }, // Mobility
       { id: "2", hash: "392767087" },  // Resilience
@@ -27,6 +27,11 @@
       { id: "5", hash: "144602215" },  // Intellect
       { id: "6", hash: "4244567218" }, // Strength
   ];
+
+  // Pass default priorities to parent on component initialization
+  $: {
+    onPrioritiesChange(items.map(item => item.hash));
+  }
 
   // Fetch the stat definitions from the manifest
   $: {
