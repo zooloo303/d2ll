@@ -3,6 +3,18 @@ import type {
   InventoryItem,
   CompleteInventoryResponse,
 } from "$lib/utils/types";
+import { getLegendaryArmorForClass } from "$lib/utils/helpers";
+
+// if ($inventoryStore && $manifestStore.tables.DestinyInventoryItemDefinition && selectedCharacter) {
+//   legendaryArmor = getLegendaryArmorForClass(
+//     $inventoryStore,
+//     selectedCharacter.classType,
+//     $manifestStore.tables.DestinyInventoryItemDefinition
+//   );
+  
+//   console.log("Legendary Armor:", legendaryArmor);
+// }
+
 
 export async function optimizeArmor(
   character: Character,

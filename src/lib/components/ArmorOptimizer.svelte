@@ -20,15 +20,13 @@
     Character,
     InventoryItem,
     Loadout,
-    ItemInstance,
-    ItemStats,
-    DestinyInventoryItemDefinition
+    CompleteInventoryResponse
   } from "$lib/utils/types";
   import { optimizeArmor } from "$lib/services/armorOptimizer";
   import { BUNGIE_BASE_URL } from "$lib/utils/constants";
   import Item from "$lib/components/Item.svelte";
-  import { getLegendaryArmorForClass } from "$lib/utils/helpers";
   import { WARLOCK_SUBCLASSES, HUNTER_SUBCLASSES, TITAN_SUBCLASSES } from "$lib/utils/constants";
+  import { findItemInInventory } from "$lib/utils/helpers";
 
   export let characterId: string;
   export let loadout: Loadout;
@@ -39,7 +37,6 @@
   let optimizedLoadout: InventoryItem[] | null = null;
   let selectedCharacter: Character | null = null;
   let exoticArmorItem: InventoryItem | null = null;
-  let legendaryArmor: { item: InventoryItem; instance: ItemInstance; stats: ItemStats; definition: DestinyInventoryItemDefinition }[] = [];
   let defaultSubclass: string | null = null;
 
   $: if (characterId) {
@@ -89,8 +86,9 @@
     selectedExotic = null;
 
     for (const item of loadout.items) {
-      const inventoryItem = findItemInInventory(inventoryData, item.itemInstanceId);
-      if (inventoryItem) {
+      const result = findItemInInventory(inventoryData as CompleteInventoryResponse, item.itemInstanceId);
+      if (result) {
+        const { item: inventoryItem } = result;
         const itemDef = $manifestStore.tables.DestinyInventoryItemDefinition[inventoryItem.itemHash];
         if (itemDef && itemDef.inventory.tierType === 6 && itemDef.itemType === 2) {
           exoticArmorItem = inventoryItem;
@@ -99,21 +97,6 @@
         }
       }
     }
-  }
-
-  function findItemInInventory(inventoryData, itemInstanceId) {
-    for (const location of ['characterInventories', 'characterEquipment', 'profileInventory']) {
-      if (location === 'profileInventory') {
-        const item = inventoryData[location].items.find(i => i.itemInstanceId === itemInstanceId);
-        if (item) return item;
-      } else {
-        for (const characterId in inventoryData[location]) {
-          const item = inventoryData[location][characterId].items.find(i => i.itemInstanceId === itemInstanceId);
-          if (item) return item;
-        }
-      }
-    }
-    return null;
   }
 
   async function handleOptimize() {
@@ -148,20 +131,22 @@
     }
   }
   function loadDefaultSubclass() {
-    let newDefaultSubclass: string | null = null;
-    for (const item of loadout.items) {
-      const inventoryItem = findItemInInventory($inventoryStore, item.itemInstanceId);
-      if (inventoryItem) {
-        const itemDef = $manifestStore.tables.DestinyInventoryItemDefinition[inventoryItem.itemHash];
-        if (itemDef && itemDef.itemType === 16) { // 16 is the itemType for subclasses
-          newDefaultSubclass = inventoryItem.itemHash.toString();
-          break;
-        }
+  let newDefaultSubclass: string | null = null;
+  for (const item of loadout.items) {
+    const result = findItemInInventory($inventoryStore as CompleteInventoryResponse, item.itemInstanceId);
+    if (result) {
+      const inventoryItem = result.item;
+      const itemDef = $manifestStore.tables.DestinyInventoryItemDefinition[inventoryItem.itemHash];
+      if (itemDef && itemDef.itemType === 16) { // 16 is the itemType for subclasses
+        newDefaultSubclass = inventoryItem.itemHash.toString();
+        break;
       }
     }
-    defaultSubclass = newDefaultSubclass;
-    selectedSubclass = newDefaultSubclass; // Reset selected subclass when loadout changes
   }
+  defaultSubclass = newDefaultSubclass;
+  selectedSubclass = newDefaultSubclass; // Reset selected subclass when loadout changes
+}
+
 
   function handleSubclassSelect(subclassHash: string) {
     selectedSubclass = subclassHash;
@@ -185,15 +170,6 @@
     console.log("Updated stat priorities:", statPriorities);
   }
 
-  $: if ($inventoryStore && $manifestStore.tables.DestinyInventoryItemDefinition && selectedCharacter) {
-    legendaryArmor = getLegendaryArmorForClass(
-      $inventoryStore,
-      selectedCharacter.classType,
-      $manifestStore.tables.DestinyInventoryItemDefinition
-    );
-    
-    console.log("Legendary Armor:", legendaryArmor);
-  }
 </script>
 <div class="p-4">
 
