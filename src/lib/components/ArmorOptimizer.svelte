@@ -28,6 +28,7 @@
   import { BUNGIE_BASE_URL } from "$lib/utils/constants";
   import Item from "$lib/components/Item.svelte";
   import { getLegendaryArmorForClass } from "$lib/utils/helpers";
+  import { WARLOCK_SUBCLASSES, HUNTER_SUBCLASSES, TITAN_SUBCLASSES } from "$lib/utils/constants";
 
   export let characterId: string;
   export let loadout: Loadout;
@@ -166,6 +167,19 @@
     selectedSubclass = subclassHash;
   }
 
+  function getSubclassesForClass(classType: number): Record<number, string> {
+    switch (classType) {
+      case 0:
+        return TITAN_SUBCLASSES;
+      case 1:
+        return HUNTER_SUBCLASSES;
+      case 2:
+        return WARLOCK_SUBCLASSES;
+      default:
+        return {};
+    }
+  }
+
   $: if ($inventoryStore && $manifestStore.tables.DestinyInventoryItemDefinition && selectedCharacter) {
     legendaryArmor = getLegendaryArmorForClass(
       $inventoryStore,
@@ -209,6 +223,7 @@
             onSelect={handleSubclassSelect}
             defaultSubclass={defaultSubclass}
             bind:selectedSubclass
+            subclasses={getSubclassesForClass(selectedCharacter.classType)}
           />
         </div>
 
