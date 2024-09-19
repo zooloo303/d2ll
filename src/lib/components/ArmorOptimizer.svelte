@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount, afterUpdate } from "svelte";
+  import { onMount } from "svelte";
   import { userStore } from "$lib/stores/auth";
   import { characterStore } from "$lib/stores/characters";
   import { inventoryStore } from "$lib/stores/inventory";
@@ -19,12 +19,15 @@
   import type {
     Character,
     InventoryItem,
-    DestinyInventoryItemDefinition,
     Loadout,
+    ItemInstance,
+    ItemStats,
+    DestinyInventoryItemDefinition
   } from "$lib/utils/types";
   import { optimizeArmor } from "$lib/services/armorOptimizer";
   import { BUNGIE_BASE_URL } from "$lib/utils/constants";
   import Item from "$lib/components/Item.svelte";
+  import { getLegendaryArmorForClass } from "$lib/utils/helpers";
 
   export let characterId: string;
   export let loadout: Loadout;
@@ -35,7 +38,7 @@
   let optimizedLoadout: InventoryItem[] | null = null;
   let selectedCharacter: Character | null = null;
   let exoticArmorItem: InventoryItem | null = null;
-  let armorDefinitions: Record<string, DestinyInventoryItemDefinition> = {};
+  let legendaryArmor: { item: InventoryItem; instance: ItemInstance; stats: ItemStats; definition: DestinyInventoryItemDefinition }[] = [];
 
   $: if (characterId) {
     updateSelectedCharacter();
@@ -141,6 +144,16 @@
         return "Unknown";
     }
   }
+
+  $: if ($inventoryStore && $manifestStore.tables.DestinyInventoryItemDefinition && selectedCharacter) {
+    legendaryArmor = getLegendaryArmorForClass(
+      $inventoryStore,
+      selectedCharacter.classType,
+      $manifestStore.tables.DestinyInventoryItemDefinition
+    );
+    
+    console.log("Legendary Armor:", legendaryArmor);
+  }
 </script>
 <div class="p-4">
 
@@ -176,7 +189,7 @@
           />
         </div>
 
-        <Button on:click={handleOptimize}>Optimize Armor</Button>
+        <Button variant="ghost" on:click={handleOptimize}>Optimize Armor</Button>
 
         {#if optimizedLoadout}
           <OptimizationResults loadout={optimizedLoadout} />
