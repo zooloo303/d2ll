@@ -20,13 +20,20 @@
     Character,
     InventoryItem,
     Loadout,
-    CompleteInventoryResponse
+    CompleteInventoryResponse,
+    DestinyInventoryItemDefinition,
   } from "$lib/utils/types";
-  import { optimizeArmor } from "$lib/services/armorOptimizer";
   import { BUNGIE_BASE_URL } from "$lib/utils/constants";
   import Item from "$lib/components/Item.svelte";
-  import { WARLOCK_SUBCLASSES, HUNTER_SUBCLASSES, TITAN_SUBCLASSES } from "$lib/utils/constants";
-  import { findItemInInventory } from "$lib/utils/helpers";
+  import {
+    WARLOCK_SUBCLASSES,
+    HUNTER_SUBCLASSES,
+    TITAN_SUBCLASSES,
+  } from "$lib/utils/constants";
+  import {
+    findItemInInventory,
+    getLegendaryArmorForClass,
+  } from "$lib/utils/helpers";
 
   export let characterId: string;
   export let loadout: Loadout;
@@ -52,7 +59,6 @@
     selectedCharacter = $characterStore.characters[characterId] || null;
     if (selectedCharacter) {
       await loadExoticArmor();
-      // Reset other selections when character changes
       selectedSubclass = null;
       optimizedLoadout = null;
     }
@@ -72,25 +78,35 @@
     }
 
     if (!$manifestStore.tables.DestinyInventoryItemDefinition) {
-      await manifestStore.getTable('DestinyInventoryItemDefinition');
+      await manifestStore.getTable("DestinyInventoryItemDefinition");
     }
-    
+
     await updateSelectedCharacter();
   });
 
   async function loadExoticArmor() {
     const inventoryData = $inventoryStore;
-    if (!inventoryData || !$manifestStore.tables.DestinyInventoryItemDefinition) return;
+    const inventoryItemDefinitions =
+      $manifestStore.tables.DestinyInventoryItemDefinition;
+    if (!inventoryData || !inventoryItemDefinitions) return;
 
     exoticArmorItem = null;
     selectedExotic = null;
 
     for (const item of loadout.items) {
-      const result = findItemInInventory(inventoryData as CompleteInventoryResponse, item.itemInstanceId);
+      const result = findItemInInventory(
+        inventoryData as CompleteInventoryResponse,
+        item.itemInstanceId,
+      );
       if (result) {
         const { item: inventoryItem } = result;
-        const itemDef = $manifestStore.tables.DestinyInventoryItemDefinition[inventoryItem.itemHash];
-        if (itemDef && itemDef.inventory.tierType === 6 && itemDef.itemType === 2) {
+        const itemDef = inventoryItemDefinitions[inventoryItem.itemHash];
+        if (
+          itemDef &&
+          itemDef.inventory &&
+          itemDef.inventory.tierType === 6 &&
+          itemDef.itemType === 2
+        ) {
           exoticArmorItem = inventoryItem;
           selectedExotic = item.itemInstanceId;
           break;
@@ -103,19 +119,45 @@
     if (
       !selectedCharacter ||
       !selectedSubclass ||
-      statPriorities.length === 0
+      statPriorities.length === 0 ||
+      !$inventoryStore ||
+      !$manifestStore.tables.DestinyInventoryItemDefinition
     ) {
       console.error("Missing required optimization parameters");
       return;
     }
 
-    optimizedLoadout = await optimizeArmor(
-      selectedCharacter,
-      selectedExotic,
-      statPriorities,
-      selectedSubclass,
+    const legendaryArmor = getLegendaryArmorForClass(
       $inventoryStore,
+      selectedCharacter.classType,
+      $manifestStore.tables.DestinyInventoryItemDefinition,
     );
+
+    try {
+      const response = await fetch("/api/optimize-armor", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          character: selectedCharacter,
+          selectedExotic,
+          statPriorities,
+          selectedSubclass,
+          legendaryArmor,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to optimize armor");
+      }
+
+      const result = await response.json();
+      optimizedLoadout = result.optimizedLoadout;
+    } catch (error) {
+      console.error("Error optimizing armor:", error);
+      // Handle error (e.g., show an error message to the user)
+    }
   }
 
   function getClassName(classType: number): string {
@@ -130,23 +172,31 @@
         return "Unknown";
     }
   }
+
   function loadDefaultSubclass() {
-  let newDefaultSubclass: string | null = null;
-  for (const item of loadout.items) {
-    const result = findItemInInventory($inventoryStore as CompleteInventoryResponse, item.itemInstanceId);
-    if (result) {
-      const inventoryItem = result.item;
-      const itemDef = $manifestStore.tables.DestinyInventoryItemDefinition[inventoryItem.itemHash];
-      if (itemDef && itemDef.itemType === 16) { // 16 is the itemType for subclasses
-        newDefaultSubclass = inventoryItem.itemHash.toString();
-        break;
+    const inventoryItemDefinitions =
+      $manifestStore.tables.DestinyInventoryItemDefinition;
+    if (!inventoryItemDefinitions) return;
+
+    let newDefaultSubclass: string | null = null;
+    for (const item of loadout.items) {
+      const result = findItemInInventory(
+        $inventoryStore as CompleteInventoryResponse,
+        item.itemInstanceId,
+      );
+      if (result) {
+        const inventoryItem = result.item;
+        const itemDef = inventoryItemDefinitions[inventoryItem.itemHash];
+        if (itemDef && itemDef.itemType === 16) {
+          // 16 is the itemType for subclasses
+          newDefaultSubclass = inventoryItem.itemHash.toString();
+          break;
+        }
       }
     }
+    defaultSubclass = newDefaultSubclass;
+    selectedSubclass = newDefaultSubclass; // Reset selected subclass when loadout changes
   }
-  defaultSubclass = newDefaultSubclass;
-  selectedSubclass = newDefaultSubclass; // Reset selected subclass when loadout changes
-}
-
 
   function handleSubclassSelect(subclassHash: string) {
     selectedSubclass = subclassHash;
@@ -169,54 +219,54 @@
     statPriorities = priorities;
     console.log("Updated stat priorities:", statPriorities);
   }
-
 </script>
+
 <div class="p-4">
-
-<Card class="w-full mx-auto">
-  <CardHeader>
-    <CardTitle>Armor Optimizer</CardTitle>
-  </CardHeader>
-  <CardContent>
-    <div class="space-y-6">
-      {#if selectedCharacter}
-        <div class="flex items-center space-x-4 justify-between">
+  <Card class="w-full mx-auto">
+    <CardHeader>
+      <CardTitle>Armor Optimizer</CardTitle>
+    </CardHeader>
+    <CardContent>
+      <div class="space-y-6">
+        {#if selectedCharacter}
           <div class="flex items-center space-x-4 justify-between">
-          <Avatar class="h-16 w-16">
-            <AvatarImage
-              src={`${BUNGIE_BASE_URL}${selectedCharacter.emblemPath}`}
-              alt="Character Emblem"
+            <div class="flex items-center space-x-4 justify-between">
+              <Avatar class="h-16 w-16">
+                <AvatarImage
+                  src={`${BUNGIE_BASE_URL}${selectedCharacter.emblemPath}`}
+                  alt="Character Emblem"
+                />
+              </Avatar>
+              <Badge>{getClassName(selectedCharacter.classType)}</Badge>
+            </div>
+            {#if exoticArmorItem}
+              <Item item={exoticArmorItem} />
+            {/if}
+
+            <StatPriorityDragDrop
+              onPrioritiesChange={handleStatPrioritiesChange}
             />
-          </Avatar>
-          <Badge>{getClassName(selectedCharacter.classType)}</Badge>
-        </div>
-          {#if exoticArmorItem}
-            <Item item={exoticArmorItem} />
+
+            <SubclassSelector
+              characterId={selectedCharacter.characterId}
+              onSelect={handleSubclassSelect}
+              {defaultSubclass}
+              bind:selectedSubclass
+              subclasses={getSubclassesForClass(selectedCharacter.classType)}
+            />
+          </div>
+
+          <Button variant="ghost" on:click={handleOptimize}
+            >Optimize Armor</Button
+          >
+
+          {#if optimizedLoadout}
+            <OptimizationResults loadout={optimizedLoadout} />
           {/if}
-          
-
-          <StatPriorityDragDrop
-            onPrioritiesChange={handleStatPrioritiesChange}
-          />
-
-          <SubclassSelector
-            characterId={selectedCharacter.characterId}
-            onSelect={handleSubclassSelect}
-            defaultSubclass={defaultSubclass}
-            bind:selectedSubclass
-            subclasses={getSubclassesForClass(selectedCharacter.classType)}
-          />
-        </div>
-
-        <Button variant="ghost" on:click={handleOptimize}>Optimize Armor</Button>
-
-        {#if optimizedLoadout}
-          <OptimizationResults loadout={optimizedLoadout} />
+        {:else}
+          <p>Error: Character not found</p>
         {/if}
-      {:else}
-        <p>Error: Character not found</p>
-      {/if}
-    </div>
-  </CardContent>
-</Card>
+      </div>
+    </CardContent>
+  </Card>
 </div>

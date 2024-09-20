@@ -1,37 +1,105 @@
+import { createAnthropic } from "@ai-sdk/anthropic";
+import { generateText } from "ai";
 import type {
   Character,
   InventoryItem,
-  CompleteInventoryResponse,
+  ItemStats,
+  ItemInstance,
 } from "$lib/utils/types";
-import { getLegendaryArmorForClass } from "$lib/utils/helpers";
+import { ANTHROPIC_API_KEY } from "$env/static/private";
 
-// if ($inventoryStore && $manifestStore.tables.DestinyInventoryItemDefinition && selectedCharacter) {
-//   legendaryArmor = getLegendaryArmorForClass(
-//     $inventoryStore,
-//     selectedCharacter.classType,
-//     $manifestStore.tables.DestinyInventoryItemDefinition
-//   );
-  
-//   console.log("Legendary Armor:", legendaryArmor);
-// }
-
+const anthropic = createAnthropic({
+  apiKey: ANTHROPIC_API_KEY,
+});
 
 export async function optimizeArmor(
   character: Character,
   selectedExotic: string | null,
   statPriorities: string[],
   selectedSubclass: string,
-  inventoryData: CompleteInventoryResponse,
+  legendaryArmor: {
+    item: InventoryItem;
+    instance: ItemInstance;
+    stats: ItemStats;
+    definition: any;
+  }[],
 ): Promise<InventoryItem[]> {
-  // This is where you would implement the AI-powered armor optimization logic
-  // For now, we'll return a mock result
-  const mockOptimizedLoadout = [
-    inventoryData.characterEquipment[character.characterId].items[0], // Helmet
-    inventoryData.characterEquipment[character.characterId].items[1], // Gauntlets
-    inventoryData.characterEquipment[character.characterId].items[2], // Chest
-    inventoryData.characterEquipment[character.characterId].items[3], // Legs
-    inventoryData.characterEquipment[character.characterId].items[4], // Class Item
-  ];
+  // Prepare the prompt for the AI
+  const prompt = `
+    Optimize an armor loadout for a Destiny 2 ${getClassName(character.classType)} character.
+    Exotic armor: ${selectedExotic ? selectedExotic : "None"}
+    Subclass: ${selectedSubclass}
+    Stat priorities: ${statPriorities.join(", ")}
 
-  return mockOptimizedLoadout;
+    Available armor:
+    ${legendaryArmor.map((item) => `${item.item.itemHash}: ${formatItemStats(item.stats)}`).join("\n")}
+
+    Please provide the optimal loadout as a list of item hashes, one per line, in this order:
+    Helmet
+    Gauntlets
+    Chest
+    Legs
+    Class Item
+
+    Aim to maximize the top priority stats, getting as many to 100 as possible, while considering the selected exotic and subclass synergies.
+    Ensure that each armor piece is unique and no duplicates are included in the loadout.
+  `;
+
+  console.log("Input data for optimization:", {
+    character: character.classType,
+    selectedExotic,
+    statPriorities,
+    selectedSubclass,
+    legendaryArmorCount: legendaryArmor.length,
+  });
+
+  try {
+    const { text } = await generateText({
+      model: anthropic("claude-3-haiku-20240307"),
+      prompt: prompt,
+    });
+
+    console.log("AI response:", text);
+
+    // Parse the AI response
+    const optimizedHashes = text.trim().split("\n");
+
+    console.log("Parsed optimized hashes:", optimizedHashes);
+
+    // Convert hashes back to InventoryItems
+    const optimizedLoadout = optimizedHashes
+      .map((hash) => {
+        const item = legendaryArmor.find(
+          (armor) => armor.item.itemHash.toString() === hash,
+        );
+        return item ? item.item : null;
+      })
+      .filter((item): item is InventoryItem => item !== null);
+
+    console.log("Optimized loadout:", optimizedLoadout.map(item => item.itemHash));
+
+    return optimizedLoadout;
+  } catch (error) {
+    console.error("Error optimizing armor:", error);
+    throw new Error("Failed to optimize armor");
+  }
+}
+
+function getClassName(classType: number): string {
+  switch (classType) {
+    case 0:
+      return "Titan";
+    case 1:
+      return "Hunter";
+    case 2:
+      return "Warlock";
+    default:
+      return "Unknown";
+  }
+}
+
+function formatItemStats(stats: ItemStats): string {
+  return Object.entries(stats)
+    .map(([statHash, stat]) => `${statHash}:${stat.value}`)
+    .join(",");
 }
