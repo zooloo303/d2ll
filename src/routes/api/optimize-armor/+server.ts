@@ -9,6 +9,8 @@ export const POST: RequestHandler = async ({ request }) => {
     statPriorities,
     selectedSubclass,
     legendaryArmor,
+    subclassFragments,
+    armorMods,
   } = await request.json();
 
   console.log("Received optimization request:", {
@@ -17,6 +19,8 @@ export const POST: RequestHandler = async ({ request }) => {
     statPriorities,
     selectedSubclass,
     legendaryArmorCount: legendaryArmor.length,
+    subclassFragmentsCount: subclassFragments.length,
+    armorModsCount: armorMods.length,
   });
 
   try {
@@ -26,6 +30,8 @@ export const POST: RequestHandler = async ({ request }) => {
       statPriorities,
       selectedSubclass,
       legendaryArmor,
+      subclassFragments,
+      armorMods
     );
 
     console.log("Optimization result:", optimizedLoadout.map(item => item.itemHash));

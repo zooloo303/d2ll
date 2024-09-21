@@ -177,3 +177,47 @@ export function getItemNameById(itemInstanceId: string): string {
 
   return itemDefinition.displayProperties.name;
 }
+
+
+export function getArmorMods(): InventoryItem[] {
+  const manifestData = get(manifestStore).tables
+    .DestinyInventoryItemDefinition as Record<
+    string,
+    DestinyInventoryItemDefinition
+  >;
+
+  return Object.values(manifestData)
+    .filter(item => 
+      item.itemType === 19 && 
+      item.itemTypeDisplayName === "General Armor Mod" &&
+      item.itemCategoryHashes.includes(4104513227)
+    )
+    .map(item => ({
+      itemHash: item.hash,
+      name: item.displayProperties.name,
+      description: item.displayProperties.description,
+      icon: item.displayProperties.icon,
+      stats: item.investmentStats
+    }));
+}
+
+export function getSubclassFragments(itemTypeDisplayName: string) {
+  console.log(`getSubclassFragments called with itemTypeDisplayName:`, itemTypeDisplayName);
+  const manifestData = get(manifestStore).tables
+    .DestinyInventoryItemDefinition as Record<
+    string,
+    DestinyInventoryItemDefinition
+  >;
+
+  return Object.values(manifestData)
+    .filter(item => 
+      item.itemTypeDisplayName === itemTypeDisplayName 
+    )
+    .map(item => ({
+      itemHash: item.hash,
+      name: item.displayProperties.name,
+      description: item.displayProperties.description,
+      icon: item.displayProperties.icon,
+      stats: item.investmentStats
+    }));
+}

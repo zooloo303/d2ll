@@ -366,6 +366,7 @@ export interface DestinyLoadoutNameDefinition {
 }
 
 export interface DestinyInventoryItemDefinition {
+	hash: number;
 	displayProperties: {
 		name: string;
 		icon: string;
@@ -376,10 +377,16 @@ export interface DestinyInventoryItemDefinition {
 	itemSubType: number;
 	classType: number;
 	stats: ItemStats;
+	investmentStats: [
+		statTypeHash: number,
+		value: number,
+		isConditionallyActive: boolean
+	]
 	inventory: {
 		bucketTypeHash: number;
 		tierType: number;
 	};
+	itemCategoryHashes: number[];
 	defaultDamageTypeHash?: number;
 	flavorText?: string;
 	screenshot?: string;

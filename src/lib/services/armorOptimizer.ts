@@ -14,7 +14,12 @@ const anthropic = createAnthropic({
 
 export async function optimizeArmor(
   character: Character,
-  selectedExotic: string | null,
+  selectedExotic: {
+    item: InventoryItem;
+    instance: ItemInstance;
+    stats: ItemStats;
+    definition: any;
+  },
   statPriorities: string[],
   selectedSubclass: string,
   legendaryArmor: {
@@ -23,6 +28,8 @@ export async function optimizeArmor(
     stats: ItemStats;
     definition: any;
   }[],
+  subclassFragments: InventoryItem[],
+  armorMods: InventoryItem[],
 ): Promise<InventoryItem[]> {
   // Prepare the prompt for the AI
   const prompt = `
@@ -30,6 +37,8 @@ export async function optimizeArmor(
     Exotic armor: ${selectedExotic ? selectedExotic : "None"}
     Subclass: ${selectedSubclass}
     Stat priorities: ${statPriorities.join(", ")}
+    Subclass fragments: ${subclassFragments.map((item) => item.itemHash).join(", ")}
+    Armor mods: ${armorMods.map((item) => item.itemHash).join(", ")}
 
     Available armor:
     ${legendaryArmor.map((item) => `${item.item.itemHash}: ${formatItemStats(item.stats)}`).join("\n")}
@@ -51,6 +60,8 @@ export async function optimizeArmor(
     statPriorities,
     selectedSubclass,
     legendaryArmorCount: legendaryArmor.length,
+    subclassFragmentsCount: subclassFragments.length,
+    armorModsCount: armorMods.length,
   });
 
   try {

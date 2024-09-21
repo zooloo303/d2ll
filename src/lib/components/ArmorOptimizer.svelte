@@ -33,12 +33,14 @@
   import {
     findItemInInventory,
     getLegendaryArmorForClass,
+    getSubclassFragments,
+    getArmorMods
   } from "$lib/utils/helpers";
 
   export let characterId: string;
   export let loadout: Loadout;
 
-  let selectedExotic: string | null = null;
+  let selectedExotic: DestinyInventoryItemDefinition | null = null;
   let statPriorities: string[] = [];
   let selectedSubclass: string | null = null;
   let optimizedLoadout: InventoryItem[] | null = null;
@@ -108,7 +110,13 @@
           itemDef.itemType === 2
         ) {
           exoticArmorItem = inventoryItem;
-          selectedExotic = item.itemInstanceId;
+          selectedExotic = {
+            itemHash: inventoryItem.itemHash,
+            itemInstanceId: inventoryItem.itemInstanceId,
+            name: itemDef.displayProperties.name,
+            itemTypeDisplayName: itemDef.itemTypeDisplayName,
+            stats: inventoryData.itemComponents.stats.data[inventoryItem.itemInstanceId]?.stats || {},
+          };
           break;
         }
       }
@@ -133,6 +141,15 @@
       $manifestStore.tables.DestinyInventoryItemDefinition,
     );
 
+    const subclassFragmentType = getSubclassFragmentType(selectedSubclass);
+    const subclassFragments = getSubclassFragments(
+      subclassFragmentType
+    );
+
+    const armorMods = getArmorMods();
+
+    console.log("Subclass fragments:", subclassFragments);
+
     try {
       const response = await fetch("/api/optimize-armor", {
         method: "POST",
@@ -145,6 +162,8 @@
           statPriorities,
           selectedSubclass,
           legendaryArmor,
+          subclassFragments,
+          armorMods,
         }),
       });
 
@@ -218,6 +237,38 @@
   function handleStatPrioritiesChange(priorities: string[]) {
     statPriorities = priorities;
     console.log("Updated stat priorities:", statPriorities);
+  }
+
+  function getSubclassFragmentType(subclassHash: string): string {
+    switch (subclassHash) {
+      case "3168997075":
+      case "2328211300":
+      case "2932390016":
+        return "Arc Fragment";
+      case "3941205951":
+      case "2240888816":
+      case "2550323932":
+        return "Solar Fragment";
+      case "2849050827":
+      case "2453351420":
+      case "2842471112":
+        return "Void Fragment";
+      case "3291545503":
+      case "873720784":
+      case "613647804":
+        return "Stasis Fragment";
+      case "4204413574":
+      case "3785442599":
+      case "242419885":
+        return "Strand Fragment";
+      case "3893112950":
+      case "4282591831":
+      case "1616346845":
+        return "Prismatic Fragment";
+      default:
+        console.error("Unknown subclass hash:", subclassHash);
+        return "Unknown Fragment";
+    }
   }
 </script>
 
