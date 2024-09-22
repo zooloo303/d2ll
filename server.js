@@ -10,7 +10,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Let SvelteKit handle everything else
 app.use(handler);
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 10000;
 app.listen(port, () => {
     console.log(`Listening on port ${port}`);
 });
