@@ -1,7 +1,7 @@
 import { BUNGIE_CLIENT_ID, BUNGIE_API_KEY, BUNGIE_CLIENT_SECRET } from '$env/static/private';
-import { BUNGIE_API_ROOT } from '$lib/utils/constants';
+import { BUNGIE_API_ROOT, BUNGIE_BASE_URL } from '$lib/utils/constants';
 
-const BUNGIE_AUTH_URL = `${BUNGIE_API_ROOT}/en/OAuth/Authorize`;
+const BUNGIE_AUTH_URL = `${BUNGIE_BASE_URL}/en/OAuth/Authorize`;
 const BUNGIE_TOKEN_URL = 'https://www.bungie.net/platform/app/oauth/token/';
 
 export function getAuthUrl(state: string) {
