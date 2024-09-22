@@ -1,5 +1,6 @@
 import type { RequestHandler } from '@sveltejs/kit';
 import { BUNGIE_API_KEY } from '$env/static/private';
+import { BUNGIE_API_ROOT } from '$lib/utils/constants';
 
 export const GET: RequestHandler = async ({ cookies, fetch }) => {
   const accessToken = cookies.get('access_token');
@@ -9,7 +10,7 @@ export const GET: RequestHandler = async ({ cookies, fetch }) => {
   }
 
   try {
-    const response = await fetch('https://www.bungie.net/Platform/User/GetMembershipsForCurrentUser/', {
+    const response = await fetch(`${BUNGIE_API_ROOT}/User/GetMembershipsForCurrentUser/`, {
       headers: {
         'X-API-Key': BUNGIE_API_KEY,
         'Authorization': `Bearer ${accessToken}`

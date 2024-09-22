@@ -1,6 +1,7 @@
 import { BUNGIE_CLIENT_ID, BUNGIE_API_KEY, BUNGIE_CLIENT_SECRET } from '$env/static/private';
+import { BUNGIE_API_ROOT } from '$lib/utils/constants';
 
-const BUNGIE_AUTH_URL = 'https://www.bungie.net/en/OAuth/Authorize';
+const BUNGIE_AUTH_URL = `${BUNGIE_API_ROOT}/en/OAuth/Authorize`;
 const BUNGIE_TOKEN_URL = 'https://www.bungie.net/platform/app/oauth/token/';
 
 export function getAuthUrl(state: string) {
@@ -39,7 +40,7 @@ export async function exchangeCodeForTokens(code: string) {
     const tokens = await response.json();
     
     // Fetch user memberships
-    const membershipResponse = await fetch('https://www.bungie.net/Platform/User/GetMembershipsForCurrentUser/', {
+    const membershipResponse = await fetch(`${BUNGIE_API_ROOT}/User/GetMembershipsForCurrentUser/`, {
       headers: {
         'X-API-Key': BUNGIE_API_KEY,
         'Authorization': `Bearer ${tokens.access_token}`

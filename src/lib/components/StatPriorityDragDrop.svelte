@@ -4,6 +4,7 @@
   import { Badge } from "$lib/components/ui/badge";
   import { manifestStore } from "$lib/stores/manifest";
   import type { DestinyStatDefinition } from "$lib/utils/types";
+  import { BUNGIE_BASE_URL } from "$lib/utils/constants";
 
   // Input prop to handle priority changes
   export let onPrioritiesChange: (priorities: string[]) => void;
@@ -63,7 +64,7 @@
       <div class="flex items-center space-x-2 p-2 bg-secondary rounded-md cursor-move" animate:flip="{{ duration: flipDurationMs }}">
         {#if statDefinitions[item.hash]}
           <img 
-            src={`https://www.bungie.net${statDefinitions[item.hash].displayProperties.icon}`} 
+            src={`${BUNGIE_BASE_URL}${statDefinitions[item.hash].displayProperties.icon}`} 
             alt={statDefinitions[item.hash].displayProperties.name} 
             class="w-6 h-6"
           />
