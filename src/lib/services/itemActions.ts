@@ -26,13 +26,18 @@ export async function equipItem(
     });
 
     if (!response.ok) {
-      throw new Error("Failed to equip item");
+      const errorText = await response.text();
+      console.error(`Failed to equip item. Status: ${response.status}, Error: ${errorText}`);
+      throw new Error(`Failed to equip item: ${errorText}`);
     }
 
-    toast.success("Item equip successfully");
+    const data = await response.json();
+    toast.success("Item equipped successfully");
+    return data;
   } catch (error) {
     console.error("Error equipping item:", error);
-    toast.error("Failed to equip item");
+    toast.error(`Failed to equip item: ${error.message}`);
+    throw error;
   }
 }
 
