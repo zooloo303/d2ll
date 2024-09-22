@@ -2,6 +2,7 @@ import { toast } from "svelte-sonner";
 import type {
   DestinyItemActionRequest,
   DestinyItemTransferRequest,
+  DestinyItemSetActionRequest,
 } from "$lib/utils/types";
 
 export async function equipItem(
@@ -69,5 +70,36 @@ export async function transferItem(
   } catch (error) {
     console.error("Error transfering item:", error);
     toast.error("Failed to transfer item");
+  }
+}
+
+export async function equipItems(
+  itemIds: string[],
+  characterId: string,
+  membershipType: number,
+) {
+  try {
+    const request: DestinyItemSetActionRequest = {
+      itemIds,
+      characterId,
+      membershipType,
+    };
+
+    const response = await fetch("/api/bungie/item-actions/equip-all", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(request),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to equip items");
+    }
+
+    toast.success("Item equip successfully");
+  } catch (error) {
+    console.error("Error equipping items:", error);
+    toast.error("Failed to equip items");
   }
 }

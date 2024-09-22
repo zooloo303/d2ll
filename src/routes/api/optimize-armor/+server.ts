@@ -31,12 +31,23 @@ export const POST: RequestHandler = async ({ request }) => {
       selectedSubclass,
       legendaryArmor,
       subclassFragments,
-      armorMods
+      armorMods,
     );
 
-    console.log("Optimization result:", optimizedLoadout.map(item => item.itemHash));
+    console.log(
+      "Optimization result:",
+      optimizedLoadout.optimizedLoadout,
+      "Optimization explanation:",
+      optimizedLoadout.explanation,
+    );
 
-    return json({ optimizedLoadout });
+    return json({
+      optimizedLoadout: optimizedLoadout.optimizedLoadout,
+      fragments: optimizedLoadout.fragments,
+      mods: optimizedLoadout.mods,
+      totalStats: optimizedLoadout.totalStats,
+      aiResponse: optimizedLoadout.explanation
+    });
   } catch (error) {
     console.error("Error optimizing armor:", error);
     return json({ error: "Failed to optimize armor" }, { status: 500 });

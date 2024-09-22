@@ -9,25 +9,21 @@ import type {
 } from "$lib/utils/types";
 import { ANTHROPIC_API_KEY } from "$env/static/private";
 
-type ExoticArmor = {
+interface ExoticArmor {
   itemHash: string;
   itemInstanceId: string;
   name: string;
   itemTypeDisplayName: string;
-  stats: {
-    [statHash: string]: {
-      statHash: string;
-      value: number;
-    };
-  };
-};
-type ModsAndFragments = {
+  stats: ItemStats;
+}
+
+interface ModsAndFragments {
   itemHash: string;
   name: string;
   description: string;
   icon: string;
-  stats: [statTypeHash: number, value: number, isConditionallyActive: boolean];
-};
+  investmentStats: [number, number, boolean][];
+}
 
 const anthropic = createAnthropic({
   apiKey: ANTHROPIC_API_KEY,
@@ -88,7 +84,7 @@ function formatSubclassFragments(fragments: ModsAndFragments[]) {
       (fragment) => `
     Name: ${fragment.name}
     ItemHash: ${fragment.itemHash}
-    InvestmentStats: ${formatInvestmentStats(fragment.stats)}
+    InvestmentStats: ${formatInvestmentStats(fragment.investmentStats || [])}
   `,
     )
     .join("\n");
@@ -100,7 +96,7 @@ function formatArmorMods(mods: ModsAndFragments[]) {
       (mod) => `
     Name: ${mod.name}
     ItemHash: ${mod.itemHash}
-    InvestmentStats: ${formatInvestmentStats(mod.stats)}
+    InvestmentStats: ${formatInvestmentStats(mod.investmentStats || [])}
   `,
     )
     .join("\n");
@@ -117,8 +113,11 @@ interface InvestmentStat {
   value: number;
 }
 
-function formatInvestmentStats(stats: InvestmentStat[]): string {
-  return stats.map((stat) => `${stat.statTypeHash}:${stat.value}`).join(", ");
+function formatInvestmentStats(stats: [number, number, boolean][]): string {
+  if (!Array.isArray(stats) || stats.length === 0) {
+    return "No investment stats";
+  }
+  return stats.map(([statTypeHash, value]) => `${statTypeHash}:${value}`).join(", ");
 }
 
 export async function optimizeArmor(
@@ -134,7 +133,13 @@ export async function optimizeArmor(
   }[],
   subclassFragments: DestinyInventoryItemDefinition[],
   armorMods: DestinyInventoryItemDefinition[],
-): Promise<InventoryItem[]> {
+): Promise<{ 
+  optimizedLoadout: InventoryItem[]; 
+  fragments: { name: string }[];
+  mods: { slot: string; name: string }[];
+  totalStats: { [key: string]: number };
+  explanation: string 
+}> {
   // Prepare the prompt for the AI
   const prompt = `As a Destiny 2 armor optimization expert and grumpy sweeper robot, please analyze the following armor pieces, subclass fragments, and armor mods to suggest the best loadout for maximizing overall stats.
       The player is using the ${selectedSubclass} subclass and must use the following exotic armor piece:
@@ -248,7 +253,6 @@ export async function optimizeArmor(
 
     console.log("Parsed AI response:", parsedResponse);
 
-    // Extract armor pieces from the parsed response
     const optimizedLoadout = parsedResponse.armor_pieces
       .map((piece: { instanceId: string; type: string; name: string }) => {
         const item = legendaryArmor.find(
@@ -258,12 +262,13 @@ export async function optimizeArmor(
       })
       .filter((item): item is InventoryItem => item !== null);
 
-    console.log(
-      "Optimized loadout:",
-      optimizedLoadout.map((item) => item.itemHash),
-    );
-
-    return optimizedLoadout;
+    return {
+      optimizedLoadout,
+      fragments: parsedResponse.fragments || [],
+      mods: parsedResponse.mods || [],
+      totalStats: parsedResponse.total_stats || {},
+      explanation: parsedResponse.explanation || "No explanation provided",
+    };
   } catch (error) {
     console.error("Error optimizing armor:", error);
     throw new Error("Failed to optimize armor");

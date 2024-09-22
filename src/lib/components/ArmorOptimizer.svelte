@@ -8,6 +8,8 @@
   import SubclassSelector from "./SubclassSelector.svelte";
   import OptimizationResults from "./OptimizationResults.svelte";
   import { Button } from "$lib/components/ui/button";
+  import LoaderCircle from "lucide-svelte/icons/loader-circle";
+
   import {
     Card,
     CardContent,
@@ -34,19 +36,25 @@
     findItemInInventory,
     getLegendaryArmorForClass,
     getSubclassFragments,
-    getArmorMods
+    getArmorMods,
   } from "$lib/utils/helpers";
 
+  type optimizedLoadoutType = {
+    optimizedLoadout: InventoryItem[];
+    explanation: string;
+  };
   export let characterId: string;
   export let loadout: Loadout;
 
   let selectedExotic: DestinyInventoryItemDefinition | null = null;
   let statPriorities: string[] = [];
   let selectedSubclass: string | null = null;
-  let optimizedLoadout: InventoryItem[] | null = null;
+  let optimizedLoadout: optimizedLoadoutType | null = null;
   let selectedCharacter: Character | null = null;
   let exoticArmorItem: InventoryItem | null = null;
   let defaultSubclass: string | null = null;
+
+  let isOptimizing = false;
 
   $: if (characterId) {
     updateSelectedCharacter();
@@ -115,7 +123,10 @@
             itemInstanceId: inventoryItem.itemInstanceId,
             name: itemDef.displayProperties.name,
             itemTypeDisplayName: itemDef.itemTypeDisplayName,
-            stats: inventoryData.itemComponents.stats.data[inventoryItem.itemInstanceId]?.stats || {},
+            stats:
+              inventoryData.itemComponents.stats.data[
+                inventoryItem.itemInstanceId
+              ]?.stats || {},
           };
           break;
         }
@@ -134,6 +145,7 @@
       console.error("Missing required optimization parameters");
       return;
     }
+    isOptimizing = true;
 
     const legendaryArmor = getLegendaryArmorForClass(
       $inventoryStore,
@@ -142,9 +154,7 @@
     );
 
     const subclassFragmentType = getSubclassFragmentType(selectedSubclass);
-    const subclassFragments = getSubclassFragments(
-      subclassFragmentType
-    );
+    const subclassFragments = getSubclassFragments(subclassFragmentType);
 
     const armorMods = getArmorMods();
 
@@ -172,10 +182,12 @@
       }
 
       const result = await response.json();
-      optimizedLoadout = result.optimizedLoadout;
+      optimizedLoadout = result;
     } catch (error) {
       console.error("Error optimizing armor:", error);
       // Handle error (e.g., show an error message to the user)
+    } finally {
+      isOptimizing = false;
     }
   }
 
@@ -307,12 +319,29 @@
             />
           </div>
 
-          <Button variant="ghost" on:click={handleOptimize}
-            >Optimize Armor</Button
+          <Button
+            variant="ghost"
+            on:click={handleOptimize}
+            disabled={isOptimizing}
           >
+            {#if isOptimizing}
+              <LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
+              Optimizing...
+            {:else}
+              Optimize Armor
+            {/if}
+          </Button>
 
           {#if optimizedLoadout}
-            <OptimizationResults loadout={optimizedLoadout} />
+            <OptimizationResults
+              loadout={optimizedLoadout.optimizedLoadout}
+              fragments={optimizedLoadout.fragments}
+              mods={optimizedLoadout.mods}
+              totalStats={optimizedLoadout.totalStats}
+              {selectedExotic}
+              aiResponse={optimizedLoadout.aiResponse}
+              characterId={selectedCharacter.characterId}
+            />
           {/if}
         {:else}
           <p>Error: Character not found</p>
