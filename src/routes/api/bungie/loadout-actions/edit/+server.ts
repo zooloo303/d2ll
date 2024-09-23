@@ -4,7 +4,7 @@ import type { DestinyLoadoutUpdateActionRequest } from "$lib/utils/types";
 import { BUNGIE_API_ROOT } from "$lib/utils/constants";
 import { BUNGIE_API_KEY } from "$env/static/private";
 
-export const POST: RequestHandler = async ({ request, cookies }) => {
+export const POST: RequestHandler = async ({ request, fetch, cookies }) => {
   try {
     const {
       loadoutIndex,
