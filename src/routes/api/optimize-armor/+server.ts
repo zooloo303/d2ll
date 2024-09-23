@@ -1,6 +1,7 @@
 import { json } from "@sveltejs/kit";
 import { optimizeArmor } from "$lib/services/armorOptimizer";
 import type { RequestHandler } from "./$types";
+import type { SlimArmorPiece } from "$lib/utils/types";
 
 export const POST: RequestHandler = async ({ request }) => {
   const {

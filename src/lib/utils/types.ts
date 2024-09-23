@@ -425,3 +425,11 @@ export interface ModsAndFragments {
   icon: string;
   investmentStats: [number, number, boolean][];
 }
+
+export interface SlimArmorPiece {
+  itemHash: string;
+  itemInstanceId: string;
+  name: string;
+  itemTypeDisplayName: string;
+  stats: ItemStats;
+}

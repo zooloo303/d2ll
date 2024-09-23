@@ -24,6 +24,7 @@
     Loadout,
     CompleteInventoryResponse,
     DestinyInventoryItemDefinition,
+    SlimArmorPiece,
   } from "$lib/utils/types";
   import { BUNGIE_BASE_URL } from "$lib/utils/constants";
   import Item from "$lib/components/Item.svelte";

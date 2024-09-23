@@ -6,6 +6,7 @@ import type {
   ItemStats,
   ItemInstance,
   DestinyInventoryItemDefinition,
+  SlimArmorPiece,
 } from "$lib/utils/types";
 import { ANTHROPIC_API_KEY } from "$env/static/private";
 
@@ -55,21 +56,14 @@ function formatExoticArmor(exotic: ExoticArmor | null): string {
   `;
 }
 
-function formatLegendaryArmor(
-  armor: {
-    item: InventoryItem;
-    instance: ItemInstance;
-    stats: ItemStats;
-    definition: DestinyInventoryItemDefinition;
-  }[],
-) {
+function formatLegendaryArmor(armor: SlimArmorPiece[]): string {
   return armor
     .map(
       (piece) => `
-    Name: ${piece.definition.displayProperties.name}
-    Type: ${piece.definition.itemTypeDisplayName}
-    ItemHash: ${piece.item.itemHash}
-    ItemInstanceId: ${piece.item.itemInstanceId}
+    Name: ${piece.name}
+    Type: ${piece.itemTypeDisplayName}
+    ItemHash: ${piece.itemHash}
+    ItemInstanceId: ${piece.itemInstanceId}
     Stats: ${formatItemStats(piece.stats)}
   `,
     )
@@ -125,16 +119,11 @@ export async function optimizeArmor(
   selectedExotic: ExoticArmor | null,
   statPriorities: string[],
   selectedSubclass: string,
-  legendaryArmor: {
-    item: InventoryItem;
-    instance: ItemInstance;
-    stats: ItemStats;
-    definition: DestinyInventoryItemDefinition;
-  }[],
-  subclassFragments: DestinyInventoryItemDefinition[],
-  armorMods: DestinyInventoryItemDefinition[],
+  legendaryArmor: SlimArmorPiece[],
+  subclassFragments: ModsAndFragments[],
+  armorMods: ModsAndFragments[],
 ): Promise<{ 
-  optimizedLoadout: InventoryItem[]; 
+  optimizedLoadout: SlimArmorPiece[]; 
   fragments: { name: string }[];
   mods: { slot: string; name: string }[];
   totalStats: { [key: string]: number };
@@ -256,11 +245,19 @@ export async function optimizeArmor(
     const optimizedLoadout = parsedResponse.armor_pieces
       .map((piece: { instanceId: string; type: string; name: string }) => {
         const item = legendaryArmor.find(
-          (armor) => armor.item.itemInstanceId === piece.instanceId,
+          (armor) => armor.itemInstanceId === piece.instanceId
         );
-        return item ? item.item : null;
+        if (!item) {
+          console.warn(`Item not found for instanceId: ${piece.instanceId}`);
+          return null;
+        }
+        return item;
       })
-      .filter((item): item is InventoryItem => item !== null);
+      .filter((item): item is SlimArmorPiece => item !== null);
+
+    if (optimizedLoadout.length !== 5) {
+      console.warn(`Expected 5 armor pieces, but found ${optimizedLoadout.length}`);
+    }
 
     return {
       optimizedLoadout,

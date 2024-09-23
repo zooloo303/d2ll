@@ -6,8 +6,7 @@ import type {
   InventoryItem,
   CompleteInventoryResponse,
   DestinyInventoryItemDefinition,
-  ItemInstance,
-  ItemStats,
+  SlimArmorPiece,
 } from "$lib/utils/types";
 
 export function lazyLoad(image: HTMLImageElement) {
@@ -91,18 +90,8 @@ export function getLegendaryArmorForClass(
   inventoryData: CompleteInventoryResponse,
   classType: number,
   manifestData: Record<string, DestinyInventoryItemDefinition>,
-): {
-  item: InventoryItem;
-  instance: ItemInstance;
-  stats: ItemStats;
-  definition: DestinyInventoryItemDefinition;
-}[] {
-  const result: {
-    item: InventoryItem;
-    instance: ItemInstance;
-    stats: ItemStats;
-    definition: DestinyInventoryItemDefinition;
-  }[] = [];
+): SlimArmorPiece[] {
+  const result: SlimArmorPiece[] = [];
 
   // Iterate through all inventory locations
   const inventoryLocations = [
@@ -129,10 +118,11 @@ export function getLegendaryArmorForClass(
 
         if (itemInstance && itemStats) {
           result.push({
-            item,
-            instance: itemInstance,
+            itemHash: item.itemHash.toString(),
+            itemInstanceId: item.itemInstanceId,
+            name: itemDef.displayProperties.name,
+            itemTypeDisplayName: itemDef.itemTypeDisplayName,
             stats: itemStats,
-            definition: itemDef,
           });
         }
       }
