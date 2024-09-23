@@ -21,7 +21,6 @@ interface ModsAndFragments {
   itemHash: string;
   name: string;
   description: string;
-  icon: string;
   investmentStats: [number, number, boolean][];
 }
 
@@ -106,11 +105,6 @@ function formatItemStats(stats: ItemStats): string {
   return Object.entries(stats)
     .map(([statHash, stat]) => `${statHash}:${stat.value}`)
     .join(", ");
-}
-
-interface InvestmentStat {
-  statTypeHash: number;
-  value: number;
 }
 
 function formatInvestmentStats(stats: [number, number, boolean][]): string {
