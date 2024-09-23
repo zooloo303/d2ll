@@ -29,7 +29,7 @@ app.use((err, req, res, next) => {
 // Let SvelteKit handle everything else
 app.use(handler);
 
-const port = process.env.PORT || 10000;
+const port = 10000;
 app.listen(port, () => {
     console.log(`Listening on port ${port}`);
 });

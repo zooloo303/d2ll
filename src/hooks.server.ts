@@ -2,6 +2,9 @@ import type { Handle } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
 
 const handleCors: Handle = async ({ event, resolve }) => {
+
+    console.log(`Handling ${event.request.method} request to ${event.url.pathname}`);
+    
     const response = await resolve(event);
     
     response.headers.set('Access-Control-Allow-Origin', '*');
