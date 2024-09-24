@@ -7,17 +7,20 @@
   import { manifestStore } from "$lib/stores/manifest";
   import { Card, CardContent } from "$lib/components/ui/card";
   import { findItemInInventory, groupItemsBy } from "$lib/utils/helpers";
+  import { Tooltip, TooltipContent, TooltipTrigger } from "$lib/components/ui/tooltip";
+  import { BUNGIE_BASE_URL } from "$lib/utils/constants";
   import type {
     Loadout,
     Character,
     InventoryItem,
+    DestinyInventoryItemDefinition,
   } from "$lib/utils/types";
 
   export let loadout: Loadout;
   export let loadoutIndex: number;
   export let character: Character;
 
-  let groupedItems: Record<number, InventoryItem[]> = {};
+  let groupedItems: Record<string, InventoryItem[]> = {};
   let loading = true;
 
   $: itemDefs = $manifestStore.tables.DestinyInventoryItemDefinition;
@@ -32,7 +35,7 @@
 
   function groupItems() {
     console.time("groupItems");
-    let tempGroupedItems: Record<number, InventoryItem[]> = {};
+    let tempGroupedItems: Record<string, InventoryItem[]> = {};
 
     if (itemDefs && inventoryData) {
       const loadoutItems = loadout.items
@@ -41,15 +44,16 @@
             inventoryData,
             loadoutItem.itemInstanceId,
           );
-          return foundItemData ? foundItemData.item : undefined;
+          return foundItemData ? { ...foundItemData.item, plugItemHashes: loadoutItem.plugItemHashes } : undefined;
         })
         .filter((item): item is InventoryItem => item !== undefined);
 
       tempGroupedItems = groupItemsBy(loadoutItems, (item) => {
         const itemDef = itemDefs[item.itemHash];
-        return itemDef && typeof itemDef.itemType === "number"
-          ? itemDef.itemType
-          : -1;
+        if (itemDef.itemType === 16) return "Subclass";
+        if (itemDef.itemType === 2) return "Armor";
+        if (itemDef.itemType === 3) return "Weapons";
+        return "Other";
       });
     }
 
@@ -58,15 +62,19 @@
     console.timeEnd("groupItems");
   }
 
-  const itemTypeNames: Record<number, string> = {
-    16: "Subclass",
-    3: "Weapons",
-    2: "Armor",
-  };
+  const itemTypeOrder = ["Subclass", "Armor", "Weapons", "Other"];
 
-  function getItemTypeName(itemType: number): string {
-    return itemTypeNames[itemType] || "Other";
+  function getPlugIcon(plugHash: number): string | null {
+    const plugDef = itemDefs[plugHash];
+    return plugDef ? `${BUNGIE_BASE_URL}${plugDef.displayProperties.icon}` : null;
   }
+
+  function getPlugName(plugHash: number): string | null {
+    const plugDef = itemDefs[plugHash];
+    return plugDef ? plugDef.displayProperties.name : null;
+  }
+
+  const iconSize = "w-10 h-10";
 
   onMount(() => {
     if (itemDefs && inventoryData) {
@@ -87,19 +95,39 @@
   </div>
 {:else}
   <div class="p-4">
-    {#each Object.entries(groupedItems) as [itemType, items] (itemType)}
-      <Card class="mb-4">
-        <CardContent>
-          <h3 class="mb-2 text-lg font-semibold">
-            {getItemTypeName(parseInt(itemType))}
-          </h3>
-          <div class="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3">
-            {#each items as item (item.itemInstanceId)}
-              <Item {item} />
-            {/each}
-          </div>
-        </CardContent>
-      </Card>
+    {#each itemTypeOrder as itemType}
+      {#if groupedItems[itemType] && groupedItems[itemType].length > 0}
+        <Card class="mb-4">
+          <CardContent>
+            <h3 class="mb-2 text-lg font-semibold">{itemType}</h3>
+            <div class="space-y-2">
+              {#each groupedItems[itemType] as item (item.itemInstanceId)}
+                <div class="flex items-center space-x-2">
+                  <Item {item} />
+                  {#if item.plugItemHashes && item.plugItemHashes.length > 0}
+                    <div class="flex space-x-2"> <!-- Increased space between icons -->
+                      {#each item.plugItemHashes as plugHash}
+                        {@const plugIcon = getPlugIcon(plugHash)}
+                        {@const plugName = getPlugName(plugHash)}
+                        {#if plugIcon && plugName}
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <img src={plugIcon} alt={plugName} class={iconSize} /> <!-- Applied new icon size -->
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>{plugName}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        {/if}
+                      {/each}
+                    </div>
+                  {/if}
+                </div>
+              {/each}
+            </div>
+          </CardContent>
+        </Card>
+      {/if}
     {/each}
   </div>
   <div class="pl-4 pr-4">

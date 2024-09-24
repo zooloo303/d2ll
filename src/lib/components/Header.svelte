@@ -74,7 +74,7 @@
     <Menu class="h-6 w-6" />
   </Button>
 
-  <h1 class="text-xl font-bold">Loadout Luminary</h1>
+  <h1 class="text-xl font-bold">my-Guardians.com : Loadout Luminary</h1>
 
   <div class="flex items-center space-x-2">
     {#if $userStore.bungieNetUser.membershipId}
