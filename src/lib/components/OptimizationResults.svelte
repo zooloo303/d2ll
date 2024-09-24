@@ -114,7 +114,7 @@
 		</div>
 
 		<div class="mt-4">
-			<h3 class="mb-2 text-lg font-semibold">SweeperBots commments</h3>
+			<h3 class="mb-2 text-lg font-semibold">SweeperBots comments</h3>
 			<p class="whitespace-pre-wrap">{aiResponse}</p>
 		</div>
 

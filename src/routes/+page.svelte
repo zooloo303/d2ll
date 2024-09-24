@@ -8,6 +8,7 @@
   import { Skeleton } from "$lib/components/ui/skeleton";
   import { writable } from "svelte/store";
   import type { Character, Loadout as LoadoutType } from "$lib/utils/types";
+  import { Tabs, TabsContent, TabsList, TabsTrigger } from "$lib/components/ui/tabs";
 
   $: charactersLoaded = Object.keys($characterStore.characters).length > 0;
   $: loadoutsLoaded = Object.keys($characterStore.loadouts).length > 0;
@@ -46,14 +47,24 @@
         <p>Error loading character data. Please try again later.</p>
       {/if}
     </div>
-    <div class="w-1/2 ">
+    <div class="pt-4 w-1/2">
       {#if $selectedLoadout && $selectedCharacter && selectedCharacterId}
-        <Loadout
-          loadout={$selectedLoadout}
-          loadoutIndex={$selectedLoadoutIndex ?? -1}
-          character={$selectedCharacter}
-        />
-        <ArmorOptimizer characterId={selectedCharacterId} loadout={$selectedLoadout} />
+        <Tabs defaultValue="loadout" class="w-full">
+          <TabsList class="grid w-[400px] grid-cols-2 mx-auto">
+            <TabsTrigger value="loadout">Loadout</TabsTrigger>
+            <TabsTrigger value="optimizer">Armor Optimizer</TabsTrigger>
+          </TabsList>
+          <TabsContent value="loadout">
+            <Loadout
+              loadout={$selectedLoadout}
+              loadoutIndex={$selectedLoadoutIndex ?? -1}
+              character={$selectedCharacter}
+            />
+          </TabsContent>
+          <TabsContent value="optimizer">
+            <ArmorOptimizer characterId={selectedCharacterId} loadout={$selectedLoadout} />
+          </TabsContent>
+        </Tabs>
       {:else}
         <div class="flex h-full items-center justify-center">
           <p class="text-center text-lg text-gray-500">
