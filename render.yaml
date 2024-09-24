@@ -1,7 +1,0 @@
-services:
-  - type: web
-    name: d2ll
-    runtime: node
-    buildCommand: npm --force install && npm run build
-    startCommand: npm run start
-    autoDeploy: false
