@@ -30,7 +30,7 @@
 
 {#if $userStore.bungieNetUser.membershipId}
   <div class="flex h-screen" transition:fade>
-    <div class="w-1/2 overflow-y-auto">
+    <div class="w-1/2">
       {#if charactersLoaded && loadoutsLoaded}
         <CharacterLoadouts
           on:selectLoadout={handleSelectLoadout}
@@ -46,7 +46,7 @@
         <p>Error loading character data. Please try again later.</p>
       {/if}
     </div>
-    <div class="w-1/2 overflow-y-auto">
+    <div class="w-1/2 ">
       {#if $selectedLoadout && $selectedCharacter && selectedCharacterId}
         <Loadout
           loadout={$selectedLoadout}
