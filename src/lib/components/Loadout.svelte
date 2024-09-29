@@ -74,7 +74,11 @@
     return plugDef ? plugDef.displayProperties.name : null;
   }
 
-  const iconSize = "w-10 h-10";
+  // Remove this line
+  // const iconSize = "w-10 h-10";
+
+  // Add this new responsive icon size
+  const responsiveIconSize = "w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10";
 
   onMount(() => {
     if (itemDefs && inventoryData) {
@@ -105,14 +109,14 @@
                 <div class="flex items-center space-x-2">
                   <Item {item} />
                   {#if item.plugItemHashes && item.plugItemHashes.length > 0}
-                    <div class="flex space-x-2"> <!-- Increased space between icons -->
+                    <div class="flex flex-wrap gap-1 sm:gap-2"> <!-- Changed space-x-2 to gap-1 and sm:gap-2 for better responsiveness -->
                       {#each item.plugItemHashes as plugHash}
                         {@const plugIcon = getPlugIcon(plugHash)}
                         {@const plugName = getPlugName(plugHash)}
                         {#if plugIcon && plugName}
                           <Tooltip>
                             <TooltipTrigger>
-                              <img src={plugIcon} alt={plugName} class={iconSize} /> <!-- Applied new icon size -->
+                              <img src={plugIcon} alt={plugName} class={responsiveIconSize} /> <!-- Applied new responsive icon size -->
                             </TooltipTrigger>
                             <TooltipContent>
                               <p>{plugName}</p>

@@ -49,16 +49,10 @@
 <Card>
   <CardHeader><h3 class="text-lg font-semibold">Actions</h3></CardHeader>
   <CardContent>
-    <Button variant="ghost" on:click={handleEquipLoadout}>Equip <Axe /></Button>
-    <Button variant="ghost" on:click={handleSnapshotLoadout}
-      >Overwrite <Camera /></Button
-    >
-    <Button variant="ghost" on:click={() => (identifierDrawerOpen = true)}
-      >Update Identifiers <IdCard /></Button
-    >
-    <Button variant="ghost" on:click={handleEClearLoadout}
-      >Clear <CircleX /></Button
-    >
+    <Button variant="ghost" on:click={handleEquipLoadout}><Axe class="mr-2 h-4 w-4" /> Equip</Button>
+    <Button variant="ghost" on:click={handleSnapshotLoadout}><Camera class="mr-2 h-4 w-4" /> Overwrite</Button>
+    <Button variant="ghost" on:click={() => (identifierDrawerOpen = true)}><IdCard class="mr-2 h-4 w-4" /> Update Identifiers</Button>
+    <Button variant="ghost" on:click={handleEClearLoadout}><CircleX class="mr-2 h-4 w-4 text-red-500" /> Clear</Button>
     <!-- Add other action buttons here -->
   </CardContent>
   <LoadoutIdentifierDrawer

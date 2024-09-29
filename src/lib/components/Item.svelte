@@ -12,6 +12,7 @@
 
   let loaded = false;
   let iconPath: string;
+  let isCompact = false;
 
   $: itemDefinition = $manifestStore.tables.DestinyInventoryItemDefinition?.[item.itemHash];
   $: overrideItemDefinition = item.overrideStyleItemHash ? 
@@ -34,18 +35,18 @@
     setTimeout(() => loaded = true, 0);
   }
 
-  onMount(async () => {
-    if (!$manifestStore.tables.DestinyInventoryItemDefinition) {
-      await manifestStore.getTable('DestinyInventoryItemDefinition');
-    }
-    if (!$manifestStore.tables.DestinyDamageTypeDefinition) {
-      await manifestStore.getTable('DestinyDamageTypeDefinition');
-    }
-    if (!$manifestStore.tables.DestinyStatDefinition) {
-      await manifestStore.getTable('DestinyStatDefinition');
-    }
-    loaded = true;
+  // Add a function to check if the component should be in compact mode
+  function checkCompactMode() {
+    isCompact = window.innerWidth < 640; // Adjust this breakpoint as needed
+  }
+
+  onMount(() => {
+    checkCompactMode();
+    window.addEventListener('resize', checkCompactMode);
+    return () => window.removeEventListener('resize', checkCompactMode);
   });
+
+  // ... rest of the existing script ...
 </script>
 
 {#if loaded && itemDefinition}
@@ -57,27 +58,29 @@
     itemSockets={socketData}
     itemInstanceId={item.itemInstanceId}
   >
-    <div class="flex items-center rounded-md bg-secondary p-2">
+    <div class="flex items-center rounded-md bg-secondary p-2 gap-2">
       {#key iconPath}
         <img
           use:lazyLoad
           data-src={`${BUNGIE_BASE_URL}${iconPath}`}
           alt={itemDefinition.displayProperties.name}
-          class="mr-2 h-12 w-12"
+          class="h-10 w-10 flex-shrink-0"
         />
       {/key}
-      <div class="flex-grow">
-        <p class="text-sm font-semibold">
-          {itemDefinition.displayProperties.name}
-        </p>
-        <p class="text-xs text-muted-foreground">Power: {powerLevel}</p>
-      </div>
+      {#if !isCompact}
+        <div class="flex-grow min-w-0">
+          <p class="text-sm font-semibold truncate">
+            {itemDefinition.displayProperties.name}
+          </p>
+          <p class="text-xs text-muted-foreground">Power: {powerLevel}</p>
+        </div>
+      {/if}
       {#if damageTypeDefinition}
         <img
           use:lazyLoad
           data-src={`${BUNGIE_BASE_URL}${damageTypeDefinition.displayProperties.icon}`}
           alt={damageTypeDefinition.displayProperties.name}
-          class="h-6 w-6"
+          class="h-5 w-5 flex-shrink-0"
         />
       {/if}
     </div>
