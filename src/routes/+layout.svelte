@@ -1,37 +1,48 @@
 <script lang="ts">
   import "../app.css";
-  import { onMount } from "svelte";
   import { ModeWatcher } from "mode-watcher";
   import { userStore } from "$lib/stores/auth";
   import { manifestStore } from "$lib/stores/manifest";
   import { characterStore } from "$lib/stores/characters";
   import { inventoryStore } from "$lib/stores/inventory";
   import Header from "$lib/components/Header.svelte";
+  // import Navbar from "$lib/components/Navbar.svelte";
   import { Toaster } from "$lib/components/ui/sonner";
   import { Progress } from "$lib/components/ui/progress";
 
-  let manifestLoading = true;
+  let manifestLoading = $state(true);
+  // let isNavOpen = $state(false);
 
-  onMount(async () => {
-    await userStore.init();
-    characterStore.init();
-    inventoryStore.init();
-    await manifestStore.init();
+  $effect(() => {
+    async function initializeStores() {
+      await userStore.init();
+      characterStore.init();
+      inventoryStore.init();
+      await manifestStore.init();
 
-    if ($userStore.destinyMemberships.length > 0) {
-      const membership = $userStore.destinyMemberships[0];
-      await characterStore.loadCharacterData(
-        membership.membershipType,
-        membership.membershipId,
-      );
-      await inventoryStore.loadInventoryData(
-        membership.membershipType,
-        membership.membershipId,
-      );
+      if ($userStore.destinyMemberships.length > 0) {
+        const membership = $userStore.destinyMemberships[0];
+        await characterStore.loadCharacterData(
+          membership.membershipType,
+          membership.membershipId,
+        );
+        await inventoryStore.loadInventoryData(
+          membership.membershipType,
+          membership.membershipId,
+        );
+      }
+
+      manifestLoading = false;
     }
 
-    manifestLoading = false;
+    initializeStores();
   });
+
+  // function toggleNav() {
+  //   isNavOpen = !isNavOpen;
+  // }
+
+  let { children } = $props();
 </script>
 
 {#if manifestLoading}
@@ -48,6 +59,7 @@
 {/if}
 
 <ModeWatcher />
-<Header />
+<Header/>
+
 <Toaster />
-<slot />
+{@render children()}
