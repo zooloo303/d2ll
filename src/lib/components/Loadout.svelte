@@ -13,7 +13,6 @@
     Loadout,
     Character,
     InventoryItem,
-    DestinyInventoryItemDefinition,
   } from "$lib/utils/types";
 
   export let loadout: Loadout;
@@ -74,10 +73,6 @@
     return plugDef ? plugDef.displayProperties.name : null;
   }
 
-  // Remove this line
-  // const iconSize = "w-10 h-10";
-
-  // Add this new responsive icon size
   const responsiveIconSize = "w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10";
 
   onMount(() => {

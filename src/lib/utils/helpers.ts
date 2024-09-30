@@ -132,43 +132,6 @@ export function getLegendaryArmorForClass(
   return result;
 }
 
-export function getItemNameById(itemInstanceId: string): string {
-  const inventoryData = get(inventoryStore);
-  const manifestData = get(manifestStore).tables
-    .DestinyInventoryItemDefinition as Record<
-    string,
-    DestinyInventoryItemDefinition
-  >;
-
-  if (!inventoryData || !manifestData) {
-    console.error("Inventory or manifest data not available");
-    return "Unknown Item";
-  }
-
-  // Find the item in the inventory
-  const item = findItemInInventory(inventoryData, itemInstanceId);
-
-  if (!item) {
-    console.error(
-      `Item with instanceId ${itemInstanceId} not found in inventory`,
-    );
-    return "Unknown Item";
-  }
-
-  // Get the item definition from the manifest
-  const itemDefinition = manifestData[item.itemHash];
-
-  if (!itemDefinition) {
-    console.error(
-      `Item definition for hash ${item.itemHash} not found in manifest`,
-    );
-    return "Unknown Item";
-  }
-
-  return itemDefinition.displayProperties.name;
-}
-
-
 export function getArmorMods(): InventoryItem[] {
   const manifestData = get(manifestStore).tables
     .DestinyInventoryItemDefinition as Record<
@@ -210,4 +173,24 @@ export function getSubclassFragments(itemTypeDisplayName: string) {
       icon: item.displayProperties.icon,
       stats: item.investmentStats
     }));
+}
+export function getInventoryItemInstances(): InventoryItem[] {
+  const inventoryData = get(inventoryStore);
+  if (!inventoryData) return [];
+
+  const itemsWithInstanceId: InventoryItem[] = [];
+
+  // Check profile inventory (vault)
+  itemsWithInstanceId.push(...inventoryData.profileInventory.items.filter(item => item.itemInstanceId));
+
+  // Check character inventories and equipment
+  for (const characterInventory of Object.values(inventoryData.characterInventories)) {
+    itemsWithInstanceId.push(...characterInventory.items.filter(item => item.itemInstanceId));
+  }
+
+  for (const characterEquipment of Object.values(inventoryData.characterEquipment)) {
+    itemsWithInstanceId.push(...characterEquipment.items.filter(item => item.itemInstanceId));
+  }
+
+  return itemsWithInstanceId;
 }
