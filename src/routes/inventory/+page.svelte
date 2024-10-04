@@ -1,1 +1,5 @@
-<h1>oh hi der</h1>
+<script lang="ts">
+    import InventoryPage from "$lib/components/InventoryPage.svelte";
+  </script>
+  
+  <InventoryPage />
