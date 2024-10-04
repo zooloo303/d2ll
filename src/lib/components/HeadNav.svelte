@@ -10,8 +10,7 @@
   import { Button } from "$lib/components/ui/button";
   import LightSwitch from "$lib/components/LightSwitch.svelte";
   import { BUNGIE_BASE_URL } from "$lib/utils/constants";
-  import { characterStore } from "$lib/stores/characters";
-  import { inventoryStore } from "$lib/stores/inventory";
+
   import { onMount } from "svelte";
 
   let refreshing = false;
@@ -34,15 +33,7 @@
 
     refreshing = true;
     try {
-      const membership = $userStore.destinyMemberships[0];
-      await characterStore.loadCharacterData(
-        membership.membershipType,
-        membership.membershipId,
-      );
-      await inventoryStore.loadInventoryData(
-        membership.membershipType,
-        membership.membershipId,
-      );
+      console.log("Refreshing data would happen here");
     } catch (error) {
       console.error('Error refreshing data:', error);
       // Attempt to refresh the token and try again
